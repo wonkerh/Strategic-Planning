@@ -1,0 +1,81 @@
+﻿<!doctype html>
+<html lang="en"><head>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Reset password | Strategic Planning Stokvel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../styles.css"></head><body>
+<header class="site-header"><div class="nav"><a class="brand" href="../index.html" aria-label="Strategic Planning home"><img src="/icon-192.png" alt="Strategic Planning logo" style="width: 2rem; height: 2rem; object-fit: contain;">Strategic Planning</a><ul class="menu"><li><a href="../index.html">Home</a></li><li><a href="../about.html">About</a></li><li><a href="../sectors.html">Sectors</a></li><li><a href="../how-to-join.html">How to join</a></li><li><a href="../dashboard.html">Dashboard</a></li><li><a href="../contact.html">Contact</a></li></ul><div class="nav-actions"><a class="btn btn-ghost btn-sm" href="../index.html">Back to site</a><a class="btn btn-primary btn-sm" href="#" data-wa>Join on WhatsApp</a></div></div></header>
+<main>
+<div class="page-head"><h1>Forgot your password?</h1><p>Step 1: request a token. Step 2: paste the token and choose a new password.</p></div>
+<section class="section"><div style="max-width:32rem;display:grid;gap:1rem">
+  <form class="card" id="f1" novalidate>
+    <h3>Step 1 — Request a reset token</h3>
+    <label>Your user name<input id="fname" autocomplete="username" required></label>
+    <p class="err" id="ferr1" hidden></p>
+    <p class="note" id="fmsg1" hidden></p>
+    <button class="btn btn-primary" type="submit" style="justify-self:start">Request token</button>
+    <p class="note" style="margin-top:.5rem">The committee reads the token off the server console and sends it to you.</p>
+  </form>
+  <form class="card" id="f2" novalidate>
+    <h3>Step 2 — Set a new password</h3>
+    <label>Reset token<input id="ftoken" autocomplete="one-time-code" required></label>
+    <label>New password<input id="fpass" type="password" autocomplete="new-password" minlength="6" required></label>
+    <label>Confirm new password<input id="fpass2" type="password" autocomplete="new-password" minlength="6" required></label>
+    <p class="err" id="ferr2" hidden></p>
+    <button class="btn btn-primary" type="submit" style="justify-self:start">Set new password</button>
+    <p class="note" style="margin-top:.5rem">Remembered it? <a href="login.html">Back to sign in</a></p>
+  </form>
+</div></section>
+</main>
+<footer><div class="wrap legal" style="border-top:none">
+  &copy; 2026 Strategic Planning. All rights reserved.
+  &middot; <a href="terms.html">Terms</a> &middot; <a href="privacy.html">Privacy</a>
+</div></footer>
+<script src="../app.js"></script>
+<script src="auth.js"></script>
+<script>
+redirectIfSignedIn();
+$("f1").onsubmit = async function(e){
+  e.preventDefault(); hideErr("ferr1");
+  var m = $("fmsg1"); m.hidden = true;
+  try{
+    var r = await API.call("/auth/forgot", { method:"POST", body: JSON.stringify({
+      name: $("fname").value.trim()
+    })});
+    m.textContent = r.devToken
+      ? "Token generated. Copy it into step 2: " + r.devToken
+      : "If that user exists, the committee can now read the token off the server console.";
+    m.hidden = false;
+    if(r.devToken) $("ftoken").value = r.devToken;
+  }catch(ex){ showErr("ferr1", ex.message); }
+};
+$("f2").onsubmit = async function(e){
+  e.preventDefault(); hideErr("ferr2");
+  var p1 = $("fpass").value, p2 = $("fpass2").value;
+  if(p1 !== p2) return showErr("ferr2", "Passwords do not match");
+  try{
+    await API.call("/auth/reset", { method:"POST", body: JSON.stringify({
+      token: $("ftoken").value.trim(), pass: p1
+    })});
+    location.href = "login.html?reset=1";
+  }catch(ex){ showErr("ferr2", ex.message); }
+};
+</script>
+</body></html>
+
+
+
+
+
+
+
+
+
+
+
+

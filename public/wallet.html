@@ -1,0 +1,73 @@
+﻿<!doctype html>
+<html lang="en"><head>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wallet | Strategic Planning Stokvel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="styles.css"></head><body>
+<header class="site-header"><div class="nav"><a class="brand" href="index.html" aria-label="Strategic Planning home"><img src="/icon-192.png" alt="Strategic Planning logo" style="width: 2rem; height: 2rem; object-fit: contain;">Strategic Planning</a><ul class="menu"></ul><div class="nav-actions"><a class="btn btn-ghost btn-sm" href="auth/logout.html">Sign out</a></div><button class="burger" id="burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">&#9776;</button></div><nav class="mobile-menu" id="mobileMenu" aria-label="Mobile"></nav></header>
+<main>
+<div class="page-head"><h1>My wallet</h1><p>Deposit, withdraw, and watch your money grow.</p></div>
+<section class="section">
+  <div class="kpis" id="kpis"></div>
+  <div class="panels">
+    <form class="card" id="df" novalidate>
+      <h3>Deposit</h3>
+      <div class="form-grid">
+        <label>Amount (R)<input id="da" type="number" min="0.01" step="0.01" required></label>
+        <label>Date<input id="dd" type="date" required></label>
+      </div>
+      <label>Note (optional)<input id="dn" maxlength="200" placeholder="e.g. October contribution"></label>
+      <button class="btn btn-primary btn-sm" type="submit" style="justify-self:start">Deposit</button>
+    </form>
+    <form class="card" id="wf" novalidate>
+      <h3>Withdraw</h3>
+      <div class="form-grid">
+        <label>Amount (R)<input id="wa" type="number" min="0.01" step="0.01" required></label>
+        <label>Date<input id="wd" type="date" required></label>
+      </div>
+      <label>Note (optional)<input id="wn" maxlength="200" placeholder="e.g. emergency"></label>
+      <button class="btn btn-primary btn-sm" type="submit" style="justify-self:start">Withdraw</button>
+      <p class="note" id="wmsg" hidden></p>
+    </form>
+  </div>
+  <div class="card">
+    <h3>Growth of my money</h3>
+    <div class="scroll"><svg class="chart" id="chart" viewBox="0 0 800 240" preserveAspectRatio="none"></svg></div>
+    <p class="note">The line grows using the monthly ROI the committee sets.</p>
+  </div>
+  <div class="panels">
+    <div class="card">
+      <h3>Transaction history</h3>
+      <div class="scroll"><table>
+        <thead><tr><th>DATE</th><th>TYPE</th><th>NOTE</th><th class="n">AMOUNT</th><th></th></tr></thead>
+        <tbody id="txb"></tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <h3>Committee ROI</h3>
+      <div class="scroll"><table>
+        <thead><tr><th>MONTH</th><th class="n">RATE</th><th>NOTE</th></tr></thead>
+        <tbody id="roib"></tbody>
+      </table></div>
+    </div>
+  </div>
+</section>
+</main>
+<footer><div class="wrap legal" style="border-top:none">&copy; 2026 Strategic Planning. All rights reserved.</div></footer>
+<script src="app.js"></script>
+<script src="wallet.js"></script>
+</body></html>
+
+
+
+
+
+
+
+
+

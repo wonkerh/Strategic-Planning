@@ -1,0 +1,44 @@
+﻿<!doctype html>
+<html lang="en"><head>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dashboard | Strategic Planning Stokvel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="styles.css"></head><body>
+<header class="site-header"><div class="nav"><a class="brand" href="index.html" aria-label="Strategic Planning home"><img src="/icon-192.png" alt="Strategic Planning logo" style="width: 2rem; height: 2rem; object-fit: contain;">Strategic Planning</a><ul class="menu"></ul><div class="nav-actions"><a class="btn btn-ghost btn-sm" href="auth/logout.html">Sign out</a></div><button class="burger" id="burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">&#9776;</button></div><nav class="mobile-menu" id="mobileMenu" aria-label="Mobile"></nav></header>
+<main>
+<div class="page-head"><h1 id="hi">Your investments</h1><p>Add your investment money, check how much you have invested, and see what other members hold in each sector.</p></div>
+<section class="section">
+<div class="kpis" id="kpis"></div>
+<div class="panels"><form class="card" id="iform"><h3>Add investment money</h3><div class="form-grid"><label>Sector<select id="sector"></select></label><label>Amount (R)<input id="amt" type="number" min="1" step="any" required></label><label>Date<input id="date" type="date" required></label></div><button class="btn btn-primary btn-sm" type="submit" style="justify-self:start">Add investment</button></form>
+<div class="card"><h3>My investment by sector</h3><div class="alloc" id="alloc"></div></div></div>
+<div class="card"><h3>Sector view</h3><div class="seg" id="seg" role="group" aria-label="Choose a sector"></div><div class="scroll"><table><thead id="sh"></thead><tbody id="sb"></tbody></table></div></div>
+<div class="panels"><div class="card"><h3>My investments</h3><div class="scroll"><table><thead><tr><th>DATE</th><th>SECTOR</th><th class="n">AMOUNT</th><th></th></tr></thead><tbody id="mine"></tbody></table></div></div><div class="card"><h3>All members</h3><div class="scroll"><table><thead><tr><th>MEMBER</th><th class="n">TOTAL</th><th>MAIN SECTOR</th></tr></thead><tbody id="mem"></tbody></table></div></div></div>
+<p class="note">All records are stored securely on the server and shared across devices.</p>
+<div class="cta-row"><a class="btn btn-ghost btn-sm" href="wallet.html">Go to Wallet</a></div>
+</section>
+</main>
+<footer>
+  <div class="wrap foot">
+    <div><a class="brand" href="index.html">Strategic Planning</a><p>To Develop Our Economy.</p></div>
+    <div><h4>Site map</h4><ul><li><a href="index.html">Home</a></li><li><a href="about.html">About</a></li><li><a href="sectors.html">Sectors</a></li><li><a href="how-to-join.html">How to join</a></li><li><a href="dashboard.html">Dashboard</a><a href="wallet.html">Wallet</a></li></ul></div>
+    <div><h4>Account</h4><ul><li><a href="auth/logout.html">Sign out</a></li><li><a href="#" data-wa>Join on WhatsApp</a></li><li><a href="contact.html">Contact</a></li></ul></div>
+    <div><h4>Contact</h4><ul><li>strategicplanningstokvel@outlook.com</li></ul></div>
+  </div>
+  <div class="wrap legal">&copy; 2026 Strategic Planning. All rights reserved. Investments carry risk and past returns do not guarantee future returns. Photos on <a href="https://unsplash.com" target="_blank" rel="noopener">Unsplash</a>.</div>
+</footer>
+<script src="app.js"></script><script src="dashboard.js"></script>
+</body></html>
+
+
+
+
+
+
+
+
+

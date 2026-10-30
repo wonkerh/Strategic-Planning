@@ -1,0 +1,17 @@
+﻿
+/* Signed-in user chip in the header */
+.nav-actions .who{
+  font:600 .9rem var(--font-mono);
+  color:var(--muted);
+  padding:.35rem .65rem;
+  border:1px solid var(--line);
+  border-radius:99px;
+  background:var(--surface);
+  max-width:12rem;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .nav-actions .who{background:var(--surface);color:var(--muted)}
+}

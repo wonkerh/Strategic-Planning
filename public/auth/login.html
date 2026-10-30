@@ -1,0 +1,75 @@
+﻿<!doctype html>
+<html lang="en"><head>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sign in | Strategic Planning Stokvel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../styles.css"></head><body>
+<header class="site-header"><div class="nav"><a class="brand" href="../index.html" aria-label="Strategic Planning home"><img src="/icon-192.png" alt="Strategic Planning logo" style="width: 2rem; height: 2rem; object-fit: contain;">Strategic Planning</a><ul class="menu"><li><a href="../index.html">Home</a></li><li><a href="../about.html">About</a></li><li><a href="../sectors.html">Sectors</a></li><li><a href="../how-to-join.html">How to join</a></li><li><a href="../dashboard.html">Dashboard</a></li><li><a href="../contact.html">Contact</a></li></ul><div class="nav-actions"><a class="btn btn-ghost btn-sm" href="../index.html">Back to site</a><a class="btn btn-primary btn-sm" href="#" data-wa>Join on WhatsApp</a></div></div></header>
+<main>
+<div class="page-head"><h1>Member sign in</h1><p>Sign in to add your investments and see how much each member has invested in every sector.</p></div>
+<section class="section"><div style="max-width:28rem;display:grid;gap:1rem">
+<form class="card" id="lform" novalidate>
+  <h3>Sign in</h3>
+  <label>User name<input id="lname" autocomplete="username" required></label>
+  <label>Password<input id="lpass" type="password" autocomplete="current-password" required></label>
+  <p class="err" id="lerr" hidden></p>
+  <button class="btn btn-primary" type="submit" style="justify-self:start">Sign in</button>
+  <p class="note" style="margin-top:.5rem">
+    New here? <a href="signup.html">Create an account</a><br>
+    Forgot your password? <a href="forgot.html">Reset it</a>
+  </p>
+</form>
+</div></section>
+</main>
+<footer>
+  <div class="wrap legal" style="border-top:none">
+    &copy; 2026 Strategic Planning. All rights reserved.
+    &middot; <a href="terms.html">Terms</a>
+    &middot; <a href="privacy.html">Privacy</a>
+  </div>
+</footer>
+<script src="../app.js"></script>
+<script src="auth.js"></script>
+<script>
+redirectIfSignedIn();
+(function(){
+  var q = new URLSearchParams(location.search);
+  if(q.has("signedout")){
+    var p = document.createElement("p"); p.className = "card"; p.textContent = "You have been signed out.";
+    document.querySelector(".section").prepend(p);
+  }
+  if(q.has("reset")){
+    var p2 = document.createElement("p"); p2.className = "card"; p2.textContent = "Password updated. Please sign in.";
+    document.querySelector(".section").prepend(p2);
+  }
+})();
+$("lform").onsubmit = async function(e){
+  e.preventDefault(); hideErr("lerr");
+  try{
+    var r = await API.call("/auth/login", { method:"POST", body: JSON.stringify({
+      name: $("lname").value.trim(),
+      pass: $("lpass").value
+    })});
+    API.set(r.token, r.user);
+    location.href = "../dashboard.html";
+  }catch(ex){ showErr("lerr", ex.message); }
+};
+</script>
+</body></html>
+
+
+
+
+
+
+
+
+
+
+
+

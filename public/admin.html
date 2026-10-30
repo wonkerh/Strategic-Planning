@@ -1,0 +1,73 @@
+﻿<!doctype html>
+<html lang="en"><head>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Committee | Strategic Planning Stokvel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="styles.css"></head><body>
+<header class="site-header"><div class="nav"><a class="brand" href="index.html" aria-label="Strategic Planning home"><img src="/icon-192.png" alt="Strategic Planning logo" style="width: 2rem; height: 2rem; object-fit: contain;">Strategic Planning</a><ul class="menu"></ul><div class="nav-actions"><a class="btn btn-ghost btn-sm" href="auth/logout.html">Sign out</a></div><button class="burger" id="burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">&#9776;</button></div><nav class="mobile-menu" id="mobileMenu" aria-label="Mobile"></nav></header>
+<main>
+<div class="page-head"><h1>Committee</h1><p>Set the monthly ROI members earn on their wallet balance.</p></div>
+<section class="section">
+  <form class="card" id="f">
+    <h3>Declare monthly ROI</h3>
+    <div class="form-grid">
+      <label>Month<input id="m" type="month" required></label>
+      <label>Rate (%)<input id="r" type="number" step="0.01" required></label>
+    </div>
+    <label>Note (optional)<input id="n" maxlength="200" placeholder="e.g. Q3 growth"></label>
+    <p class="err" id="err" hidden></p>
+    <button class="btn btn-primary btn-sm" type="submit" style="justify-self:start">Save rate</button>
+  </form>
+  <div class="card">
+    <h3>Declared rates</h3>
+    <div class="scroll"><table>
+      <thead><tr><th>MONTH</th><th class="n">RATE</th><th>NOTE</th><th></th></tr></thead>
+      <tbody id="tb"></tbody>
+    </table></div>
+  </div>
+</section>
+</main>
+<footer><div class="wrap legal" style="border-top:none">&copy; 2026 Strategic Planning. All rights reserved.</div></footer>
+<script src="app.js"></script>
+<script>
+if(!API.user){ location.replace("auth/denied.html"); }
+else if(API.user.role !== "admin"){ location.replace("dashboard.html"); }
+const $=id=>document.getElementById(id);
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+async function load(){
+  try{
+    const r = await API.call("/admin/roi");
+    $("tb").innerHTML = r.roi.length
+      ? r.roi.map(x=>'<tr><td>'+esc(x.month)+'</td><td class="n">'+x.rate_pct.toFixed(2)+'%</td><td>'+esc(x.note||"")+'</td><td><button class="mini" data-m="'+esc(x.month)+'">Remove</button></td></tr>').join("")
+      : '<tr><td colspan="4" class="empty">No rates set yet.</td></tr>';
+  }catch(ex){ alert(ex.message); }
+}
+$("f").onsubmit = async (e)=>{
+  e.preventDefault(); $("err").hidden = true;
+  try{
+    await API.call("/admin/roi",{method:"POST",body:JSON.stringify({month:$("m").value,rate_pct:parseFloat($("r").value),note:$("n").value})});
+    $("f").reset(); load();
+  }catch(ex){ $("err").textContent=ex.message; $("err").hidden=false; }
+};
+$("tb").onclick = async (e)=>{
+  const m = e.target.getAttribute("data-m"); if(!m) return;
+  if(!confirm("Remove rate for "+m+"?")) return;
+  try{ await API.call("/admin/roi/"+m,{method:"DELETE"}); load(); }catch(ex){ alert(ex.message); }
+};
+load();
+</script>
+</body></html>
+
+
+
+
+
+
+
+
+
