@@ -3,6 +3,9 @@ document.querySelectorAll("[data-wa]").forEach(function(a){a.href=WA_LINK;a.targ
 var b=document.getElementById("burger"),m=document.getElementById("mobileMenu");
 if(b)b.addEventListener("click",function(){var o=m.classList.toggle("open");b.setAttribute("aria-expanded",String(o))});
 
+// ---> POINT TO RENDER BACKEND <---
+var API_BASE = "https://strategic-planning.onrender.com/api";
+
 var API = {
   TOKEN_KEY: "spToken",
   USER_KEY: "spUser",
@@ -14,7 +17,8 @@ var API = {
     opts=opts||{};
     var headers=Object.assign({"Content-Type":"application/json"},opts.headers||{});
     if(this.token)headers.Authorization="Bearer "+this.token;
-    var res=await fetch("/api"+path,Object.assign({},opts,{headers}));
+    // Use API_BASE here instead of just "/api"
+    var res=await fetch(API_BASE+path,Object.assign({},opts,{headers}));
     var body=null;
     try{body=await res.json()}catch(e){}
     if(!res.ok)throw new Error((body&&body.error)||("HTTP "+res.status));
@@ -31,25 +35,24 @@ function renderNav(){
 
   if (user) {
     var memberLinks = [
-      { href: "dashboard.html", label: "Dashboard" },
-      { href: "wallet.html",    label: "Wallet" }
+      { href: "/dashboard.html", label: "Dashboard" },
+      { href: "/wallet.html",    label: "Wallet" }
     ];
     if (user.role === "admin") {
-      memberLinks.push({ href: "admin.html", label: "Committee" });
+      memberLinks.push({ href: "/admin.html", label: "Committee" });
     }
 
     var current = location.pathname.split("/").pop();
 
     if (menu) {
       menu.innerHTML = memberLinks.map(function(l){
-        var cur = l.href === current ? ' aria-current="page"' : "";
+        var cur = l.href.includes(current) ? ' aria-current="page"' : "";
         return '<li><a href="' + l.href + '"' + cur + '>' + l.label + '</a></li>';
       }).join("");
     }
     if (actions) {
       actions.innerHTML =
-        '<span class="who">' + escapeHtml(user.name) + '</span>' +
-        '<a class="btn btn-ghost btn-sm" href="/auth/logout.html">Sign out</a>';
+        '<div class="user-chip"><span class="who">' + escapeHtml(user.name) + '</span><a class="btn btn-ghost btn-sm" href="/auth/logout.html">Sign out</a></div>';
     }
     if (mobile) {
       mobile.innerHTML = memberLinks.map(function(l){
@@ -58,25 +61,25 @@ function renderNav(){
     }
   } else {
     var guestLinks = [
-      { href: "index.html",        label: "Home" },
-      { href: "about.html",        label: "About" },
-      { href: "sectors.html",      label: "Sectors" },
-      { href: "how-to-join.html",  label: "How to join" },
-      { href: "dashboard.html",    label: "Dashboard" },
-      { href: "contact.html",      label: "Contact" }
+      { href: "/index.html",        label: "Home" },
+      { href: "/about.html",        label: "About" },
+      { href: "/sectors.html",      label: "Sectors" },
+      { href: "/how-to-join.html",  label: "How to join" },
+      { href: "/dashboard.html",    label: "Dashboard" },
+      { href: "/contact.html",      label: "Contact" }
     ];
 
     var currentG = location.pathname.split("/").pop();
 
     if (menu) {
       menu.innerHTML = guestLinks.map(function(l){
-        var cur = l.href === currentG ? ' aria-current="page"' : "";
+        var cur = l.href.includes(currentG) ? ' aria-current="page"' : "";
         return '<li><a href="' + l.href + '"' + cur + '>' + l.label + '</a></li>';
       }).join("");
     }
     if (actions) {
       actions.innerHTML =
-        '<a class="btn btn-ghost btn-sm" href="auth/login.html">Sign in</a>' +
+        '<a class="btn btn-ghost btn-sm" href="/auth/login.html">Sign in</a>' +
         '<a class="btn btn-primary btn-sm" href="#" data-wa>Join on WhatsApp</a>';
       document.querySelectorAll("[data-wa]").forEach(function(a){a.href=WA_LINK;a.target="_blank";a.rel="noopener"});
     }
@@ -84,7 +87,7 @@ function renderNav(){
       mobile.innerHTML = guestLinks.map(function(l){
         return '<a href="' + l.href + '">' + l.label + '</a>';
       }).join("") +
-        '<a href="auth/login.html">Sign in</a>' +
+        '<a href="/auth/login.html">Sign in</a>' +
         '<a href="#" data-wa>Join on WhatsApp</a>';
       document.querySelectorAll("[data-wa]").forEach(function(a){a.href=WA_LINK;a.target="_blank";a.rel="noopener"});
     }
@@ -102,7 +105,3 @@ renderNav();
 window.addEventListener("storage", function(e){
   if (e.key === "spToken") renderNav();
 });
-
-
-
-
