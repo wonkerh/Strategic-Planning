@@ -34,6 +34,8 @@ db.exec(`
     amount     REAL NOT NULL CHECK (amount > 0),
     note       TEXT,
     date       TEXT NOT NULL,
+    end_date   TEXT,
+    is_locked  INTEGER DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 

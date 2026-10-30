@@ -20,7 +20,7 @@
   function render(){
     const t = DATA.totals;
     $("kpis").innerHTML = [
-      ["CASH BALANCE", R(t.cash), "deposited − withdrawn"],
+      ["CASH BALANCE", R(t.cash), "unlocked funds"],
       ["INVESTED", R(t.invested), "in pooled sectors"],
       ["GROWTH EARNED", R(t.growth), t.roiMonthsSet+" ROI months applied"],
       ["BALANCE WITH GROWTH", R(t.balanceWithGrowth), "cash + compounding"]
@@ -31,7 +31,22 @@
       ? DATA.transactions.slice().reverse().map(t=>{
           const sign = t.kind === "deposit" ? "+" : "−";
           const cls = t.kind === "deposit" ? "pos" : "neg";
-          return '<tr><td>'+esc(t.date)+'</td><td>'+t.kind.toUpperCase()+'</td><td>'+esc(t.note||"")+'</td><td class="n '+cls+'">'+sign+R(t.amount)+'</td><td><button class="mini" data-x="'+t.id+'" type="button">Remove</button></td></tr>';
+          
+          let statusHtml = "";
+          if (t.kind === "deposit" && t.end_date) {
+            const isLocked = new Date(t.end_date) > new Date();
+            statusHtml = isLocked 
+              ? `<span style="font-size:0.8rem; color:var(--bad);">🔒 Locked until ${t.end_date}</span>`
+              : `<span style="font-size:0.8rem; color:var(--ok);">✓ Unlocked</span>`;
+          }
+
+          return `<tr>
+            <td>${esc(t.date)}</td>
+            <td>${t.kind.toUpperCase()}</td>
+            <td>${statusHtml}</td>
+            <td class="n ${cls}">${sign}R ${t.amount.toFixed(2)}</td>
+            <td><button class="mini" data-x="${t.id}" type="button">Remove</button></td>
+          </tr>`;
         }).join("")
       : '<tr><td colspan="5" class="empty">No transactions yet.</td></tr>';
 
@@ -69,10 +84,10 @@
 
   $("df").onsubmit = async (e)=>{
     e.preventDefault();
-    const a = parseFloat($("da").value); if(!(a>0)) return alert("Enter an amount");
+    const a = parseFloat($("da").value); 
     try{
-      await API.call("/wallet/deposit",{method:"POST",body:JSON.stringify({amount:a,date:$("dd").value,note:$("dn").value})});
-      $("da").value=""; $("dn").value=""; load();
+      await API.call("/wallet/deposit",{method:"POST",body:JSON.stringify({amount:a,date:$("dd").value})});
+      load();
     }catch(ex){ alert(ex.message); }
   };
 
@@ -94,4 +109,3 @@
 
   load();
 })();
-
