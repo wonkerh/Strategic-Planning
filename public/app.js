@@ -38,8 +38,7 @@ function renderNav(){
       { href: "/dashboard.html", label: "Dashboard" },
       { href: "/wallet.html",    label: "Wallet" }
     ];
-    if (user.role === "admin") {
-      memberLinks.push({ href: "/admin.html", label: "Committee" });
+    if (user.role === "admin") { memberLinks.push({ href: "/admin.html", label: "ROI" }); memberLinks.push({ href: "/admin-members.html", label: "Members" }); memberLinks.push({ href: "/admin-reports.html", label: "Reports" }); });
     }
 
     var current = location.pathname.split("/").pop();
@@ -105,3 +104,4 @@ renderNav();
 window.addEventListener("storage", function(e){
   if (e.key === "spToken") renderNav();
 });
+

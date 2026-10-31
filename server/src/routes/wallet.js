@@ -18,7 +18,7 @@ function cashBalance(txs) {
   const today = new Date().toISOString().slice(0, 10);
   return txs.reduce((s, t) => {
     if (t.kind === "deposit") {
-      if (t.is_locked === 1 && t.end_date > today) return s; // Skip locked funds
+      if (t.is_locked === 1 && t.end_date > today) return s; 
       return s + t.amount;
     }
     if (t.kind === "withdraw") return s - t.amount;
@@ -55,9 +55,9 @@ r.get("/summary", (req, res) => {
   const cash = cashBalance(txs); const invested = investedTotal(invs); const { series, final } = growthSeries(txs, invs, rois);
   const growth = final - cash;
   const deposits = txs.filter((t) => t.kind === "deposit").reduce((s, t) => s + t.amount, 0);
-  const withdrawals = txs.filter((t) => t.kind === "withdraw").reduce((s, t) => s + t.amount, 0);
+  
   res.json({
-    totals: { deposited: deposits, withdrawn: withdrawals, cash, invested, growth, balanceWithGrowth: final, roiMonthsSet: rois.length },
+    totals: { deposited: deposits, cash, invested, growth, balanceWithGrowth: final, roiMonthsSet: rois.length },
     series, transactions: txs, investments: invs, roi: rois,
   });
 });
@@ -65,29 +65,19 @@ r.get("/summary", (req, res) => {
 r.post("/deposit", (req, res) => {
   const amount = Number(req.body?.amount);
   const date = String(req.body?.date || "");
-  if (amount !== 1000) return res.status(400).json({ error: "You must deposit exactly R1,000 to start a 12-month contract." });
+  
+  if (amount <= 0 || amount % 1000 !== 0) {
+    return res.status(400).json({ error: "Deposits must be made in multiples of R1,000 (1 Unit)." });
+  }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({ error: "Date must be YYYY-MM-DD" });
+  
   const depositDate = new Date(date);
   depositDate.setFullYear(depositDate.getFullYear() + 1);
   const end_date = depositDate.toISOString().slice(0, 10);
+  const units = amount / 1000;
+
   const info = db.prepare("INSERT INTO transactions (user_id, kind, amount, note, date, end_date, is_locked) VALUES (?, 'deposit', ?, '12-Month Contract', ?, ?, 1)").run(req.user.id, amount, date, end_date);
   res.status(201).json({ transaction: db.prepare("SELECT * FROM transactions WHERE id = ?").get(info.lastInsertRowid) });
-});
-
-r.post("/withdraw", (req, res) => {
-  const amount = Number(req.body?.amount);
-  const date = String(req.body?.date || "");
-  if (!Number.isFinite(amount) || amount <= 0) return res.status(400).json({ error: "Amount must be > 0" });
-  const cash = cashBalance(ledgerFor(req.user.id));
-  if (amount > cash) return res.status(400).json({ error: `Withdrawal exceeds available cash (R ${cash.toFixed(2)}). Locked contracts cannot be withdrawn yet.` });
-  const info = db.prepare("INSERT INTO transactions (user_id, kind, amount, date) VALUES (?, 'withdraw', ?, ?)").run(req.user.id, amount, date);
-  res.status(201).json({ ok: true });
-});
-
-r.delete("/transaction/:id", (req, res) => {
-  const info = db.prepare("DELETE FROM transactions WHERE id = ? AND user_id = ?").run(Number(req.params.id), req.user.id);
-  if (info.changes === 0) return res.status(404).json({ error: "Not found" });
-  res.json({ ok: true });
 });
 
 r.get("/roi", (req, res) => { res.json({ roi: roiRows() }); });

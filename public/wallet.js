@@ -20,12 +20,10 @@
   function render(){
     const t = DATA.totals;
     $("kpis").innerHTML = [
-      ["CASH BALANCE", R(t.cash), "unlocked funds"],
-      ["INVESTED", R(t.invested), "in pooled sectors"],
+      ["TOTAL LOCKED", R(t.deposited), "funds invested"],
       ["GROWTH EARNED", R(t.growth), t.roiMonthsSet+" ROI months applied"],
-      ["BALANCE WITH GROWTH", R(t.balanceWithGrowth), "cash + compounding"]
+      ["BALANCE WITH GROWTH", R(t.balanceWithGrowth), "total projected value"]
     ].map(k=>'<div class="card kpi"><small>'+k[0]+'</small><b>'+k[1]+'</b><span>'+k[2]+'</span></div>').join("");
-    $("wmsg").hidden = true;
 
     $("txb").innerHTML = DATA.transactions.length
       ? DATA.transactions.slice().reverse().map(t=>{
@@ -45,10 +43,9 @@
             <td>${t.kind.toUpperCase()}</td>
             <td>${statusHtml}</td>
             <td class="n ${cls}">${sign}R ${t.amount.toFixed(2)}</td>
-            <td><button class="mini" data-x="${t.id}" type="button">Remove</button></td>
           </tr>`;
         }).join("")
-      : '<tr><td colspan="5" class="empty">No transactions yet.</td></tr>';
+      : '<tr><td colspan="4" class="empty">No transactions yet.</td></tr>';
 
     $("roib").innerHTML = ROI.length
       ? ROI.slice().reverse().map(r=>'<tr><td>'+esc(r.month)+'</td><td class="n">'+(r.rate_pct>=0?"+":"")+r.rate_pct.toFixed(2)+'%</td><td>'+esc(r.note||"")+'</td></tr>').join("")
@@ -77,35 +74,6 @@
       <circle cx="${xs(series.length-1)}" cy="${ys(series[series.length-1].balance)}" r="4" fill="#2E7D5B"/>
     `;
   }
-
-  function today(){ return new Date().toISOString().slice(0,10); }
-  $("dd").value = today();
-  $("wd").value = today();
-
-  $("df").onsubmit = async (e)=>{
-    e.preventDefault();
-    const a = parseFloat($("da").value); 
-    try{
-      await API.call("/wallet/deposit",{method:"POST",body:JSON.stringify({amount:a,date:$("dd").value})});
-      load();
-    }catch(ex){ alert(ex.message); }
-  };
-
-  $("wf").onsubmit = async (e)=>{
-    e.preventDefault();
-    const a = parseFloat($("wa").value); if(!(a>0)) return alert("Enter an amount");
-    try{
-      await API.call("/wallet/withdraw",{method:"POST",body:JSON.stringify({amount:a,date:$("wd").value,note:$("wn").value})});
-      $("wa").value=""; $("wn").value=""; load();
-    }catch(ex){ const m=$("wmsg"); m.textContent=ex.message; m.hidden=false; }
-  };
-
-  $("txb").onclick = async (e)=>{
-    const x = e.target.getAttribute("data-x"); if(!x) return;
-    if(!confirm("Remove this transaction?")) return;
-    try{ await API.call("/wallet/transaction/"+x,{method:"DELETE"}); load(); }
-    catch(ex){ alert(ex.message); }
-  };
 
   load();
 })();
