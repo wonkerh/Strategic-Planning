@@ -4,7 +4,7 @@ var b=document.getElementById("burger"),m=document.getElementById("mobileMenu");
 if(b)b.addEventListener("click",function(){var o=m.classList.toggle("open");b.setAttribute("aria-expanded",String(o))});
 
 // ---> POINT TO LOCAL BACKEND FOR DEVELOPMENT <---
-var API_BASE = "http://localhost:3000/api";
+var API_BASE = "https://strategic-planning.onrender.com/api";
 
 var API = {
   TOKEN_KEY: "spToken",
