@@ -42,7 +42,11 @@ app.use("/api/users", requireAuth, userRoutes);
 
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
 
+// Serve static files
 const publicDir = join(__dirname, "..", "..", "public");
+const uploadsDir = join(__dirname, "..", "uploads");
+
+app.use("/uploads", express.static(uploadsDir));
 app.use(express.static(publicDir));
 
 app.get("*", (req, res, next) => {

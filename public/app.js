@@ -1,10 +1,10 @@
-﻿var WA_LINK="https://chat.whatsapp.com/BBwVr0n97QGIZnJYpU7XCZ?s=cl&p=i&mlu=4&ilr=4";
+﻿var WA_LINK="https://chat.whatsapp.com/GwUvrSQBdosIlFVRnUPU9j?s=cl&p=i&mlu=4&ilr=4&iam=2";
 document.querySelectorAll("[data-wa]").forEach(function(a){a.href=WA_LINK;a.target="_blank";a.rel="noopener"});
 var b=document.getElementById("burger"),m=document.getElementById("mobileMenu");
 if(b)b.addEventListener("click",function(){var o=m.classList.toggle("open");b.setAttribute("aria-expanded",String(o))});
 
-// ---> POINT TO RENDER BACKEND <---
-var API_BASE = "https://strategic-planning.onrender.com/api";
+// ---> POINT TO LOCAL BACKEND FOR DEVELOPMENT <---
+var API_BASE = "http://localhost:3000/api";
 
 var API = {
   TOKEN_KEY: "spToken",
@@ -17,7 +17,6 @@ var API = {
     opts=opts||{};
     var headers=Object.assign({"Content-Type":"application/json"},opts.headers||{});
     if(this.token)headers.Authorization="Bearer "+this.token;
-    // Use API_BASE here instead of just "/api"
     var res=await fetch(API_BASE+path,Object.assign({},opts,{headers}));
     var body=null;
     try{body=await res.json()}catch(e){}
@@ -38,7 +37,10 @@ function renderNav(){
       { href: "/dashboard.html", label: "Dashboard" },
       { href: "/wallet.html",    label: "Wallet" }
     ];
-    if (user.role === "admin") { memberLinks.push({ href: "/admin.html", label: "ROI" }); memberLinks.push({ href: "/admin-members.html", label: "Members" }); memberLinks.push({ href: "/admin-reports.html", label: "Reports" }); });
+    if (user.role === "admin") {
+      memberLinks.push({ href: "/admin.html", label: "ROI" });
+      memberLinks.push({ href: "/admin-members.html", label: "Members" });
+      memberLinks.push({ href: "/admin-reports.html", label: "Reports" });
     }
 
     var current = location.pathname.split("/").pop();

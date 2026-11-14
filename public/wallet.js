@@ -38,10 +38,14 @@
               : `<span style="font-size:0.8rem; color:var(--ok);">✓ Unlocked</span>`;
           }
 
+          const proofHtml = t.proof_file 
+            ? `<a href="${API_BASE.replace('/api', '')}/uploads/${t.proof_file}" target="_blank" style="color:var(--sky-deep); font-size:0.85rem; text-decoration:underline;">View Proof</a>` 
+            : "";
+
           return `<tr>
             <td>${esc(t.date)}</td>
             <td>${t.kind.toUpperCase()}</td>
-            <td>${statusHtml}</td>
+            <td>${statusHtml} ${proofHtml}</td>
             <td class="n ${cls}">${sign}R ${t.amount.toFixed(2)}</td>
           </tr>`;
         }).join("")
@@ -77,3 +81,5 @@
 
   load();
 })();
+
+

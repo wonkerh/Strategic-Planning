@@ -1,0 +1,4 @@
+﻿/dashboard.html /dashboard.html 200
+/wallet.html /wallet.html 200
+/auth/* /auth/:splat 200
+/* /index.html 200

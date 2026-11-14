@@ -6,7 +6,7 @@ const r = Router();
 r.use(requireAuth);
 
 function ledgerFor(userId) {
-  return db.prepare("SELECT id, kind, amount, note, date, end_date, is_locked, created_at FROM transactions WHERE user_id = ? ORDER BY date ASC, id ASC").all(userId);
+  return db.prepare("SELECT id, kind, amount, note, date, end_date, is_locked, proof_file, created_at FROM transactions WHERE user_id = ? ORDER BY date ASC, id ASC").all(userId);
 }
 function investmentsFor(userId) {
   return db.prepare("SELECT id, sector, amount, date FROM investments WHERE user_id = ? ORDER BY date ASC, id ASC").all(userId);
@@ -83,3 +83,4 @@ r.post("/deposit", (req, res) => {
 r.get("/roi", (req, res) => { res.json({ roi: roiRows() }); });
 
 export default r;
+

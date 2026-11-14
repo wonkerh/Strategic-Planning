@@ -1,0 +1,145 @@
+﻿<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Manage Members | Committee</title>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="stylesheet" href="/styles.css"></head><body>
+<header class="site-header"><div class="nav"><a class="brand" href="/index.html"><img src="/icon-192.png" alt="Logo" style="width: 2rem; height: 2rem; object-fit: contain;">Strategic Planning</a><ul class="menu"></ul><div class="nav-actions"><a class="btn btn-ghost btn-sm" href="/admin.html">ROI</a><a class="btn btn-ghost btn-sm" href="/admin-balances.html">Balances</a><a class="btn btn-ghost btn-sm" href="/auth/logout.html">Sign out</a></div></div></header>
+<main>
+<div class="page-head"><h1>Manage Members & Payments</h1><p>Add users or record their monthly payments.</p></div>
+<section class="section">
+  
+  <div class="panels">
+    <!-- Single User Form -->
+    <form class="card" id="mform">
+      <h3>Add Single Investor</h3>
+      <div class="form-grid">
+        <label>Full Name<input id="mname" required placeholder="e.g. John Doe"></label>
+        <label>Temporary Password<input id="mpass" required value="Welcome123" minlength="6"></label>
+      </div>
+      <button class="btn btn-primary btn-sm" type="submit" style="justify-self:start">Create Account</button>
+      <p class="note" id="mmsg" hidden style="color:var(--ok); font-weight:bold;"></p>
+    </form>
+
+    <!-- Manual Payment Form (Updated) -->
+    <form class="card" id="payform" style="border: 2px solid var(--gold); background: var(--bg-band);">
+      <h3 style="color: var(--soil);">Record Member Payment</h3>
+      <p class="note" style="margin-bottom: 1rem;">Select a member, enter the amount they paid, and the system will add it to their history and update their balance.</p>
+      
+      <label>Select Member
+        <select id="puser" required style="font-size: 1.1rem; padding: 0.8rem;"></select>
+      </label>
+      
+      <div class="form-grid">
+        <label>Amount Paid (R)<input id="pamount" type="number" value="1000" min="1000" step="1000" required style="font-size: 1.1rem; font-weight: bold;"></label>
+        <label>Date Paid<input id="pdate" type="date" required></label>
+      </div>
+      
+      <label>Reason / Reference (optional)<input id="pnote" placeholder="e.g. October contribution"></label>`n      <label>Upload Proof of Payment (Image/PDF)<input id="pproof" type="file" accept="image/*,.pdf" required></label>
+      
+      <button class="btn btn-primary" type="submit" style="justify-self:start; background:var(--ok); font-size: 1rem; padding: 0.8rem 1.5rem;">Save Payment & Update Balance</button>
+      <p class="note" id="pmsg" hidden style="color:var(--ok); font-weight:bold; font-size: 1.1rem;"></p>
+    </form>
+  </div>
+
+  <!-- Members List -->
+  <div class="card" style="margin-top: 1rem;">
+    <h3>Active Members & Balances</h3>
+    <div class="scroll"><table>
+      <thead><tr><th>NAME</th><th>ROLE</th><th class="n">CURRENT BALANCE</th></tr></thead>
+      <tbody id="memList"></tbody>
+    </table></div>
+  </div>
+</section>
+</main>
+<footer><div class="wrap legal" style="border-top:none">&copy; 2026 Strategic Planning. All rights reserved.</div></footer>
+<script src="/app.js"></script>
+<script>
+if(!API.user) location.replace("/auth/denied.html");
+else if(API.user.role !== "admin") location.replace("/dashboard.html");
+
+const $=id=>document.getElementById(id);
+function R(n){ return "R " + (Math.round(n*100)/100).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,","); }
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+
+$("pdate").value = new Date().toISOString().slice(0,10);
+
+async function loadMembers(){
+  try {
+    // Fetch both users and their balances
+    const uRes = await API.call("/admin/users");
+    const bRes = await API.call("/admin/balances");
+    
+    // Populate Dropdown
+    const members = uRes.users.filter(u => u.role === "member");
+    $("puser").innerHTML = '<option value="">-- Select Member --</option>' + 
+      members.map(u => `<option value="${u.id}">${esc(u.name)}</option>`).join("");
+
+    // Populate Table
+    $("memList").innerHTML = bRes.balances.map(b => `
+      <tr>
+        <td><b>${esc(b.name)}</b></td>
+        <td>Member</td>
+        <td class="n pos" style="font-weight: bold; font-size: 1.1rem;">${R(b.totalInvested)}</td>
+      </tr>
+    `).join("");
+  } catch(ex) { console.error(ex); }
+}
+
+$("mform").onsubmit = async (e) => {
+  e.preventDefault();
+  $("mmsg").hidden = true;
+  try {
+    await API.call("/admin/users", {
+      method: "POST",
+      body: JSON.stringify({ name: $("mname").value.trim(), pass: $("mpass").value })
+    });
+    $("mmsg").textContent = "Account created successfully!";
+    $("mmsg").hidden = false;
+    $("mname").value = "";
+    loadMembers();
+  } catch(ex) { alert(ex.message); }
+};
+
+$("payform").onsubmit = async (e) => {
+  e.preventDefault();
+  $("pmsg").hidden = true;
+  const userId = $("puser").value;
+  const memberName = $("puser").options[$("puser").selectedIndex].text;
+  
+  if(!userId) return alert("Please select a member from the dropdown.");
+  if(!confirm(`Are you sure you want to record a payment of R${$("pamount").value} for ${memberName}?`)) return;
+
+  const formData = new FormData();
+  formData.append("userId", userId);
+  formData.append("amount", $("pamount").value);
+  formData.append("date", $("pdate").value);
+  formData.append("note", $("pnote").value);
+  const file = $("pproof").files[0];
+  if (file) formData.append("proof", file);
+
+  try {
+    // Use raw fetch for FormData, not API.call
+    const res = await fetch(API_BASE + "/admin/manual-deposit", {
+      method: "POST",
+      headers: { "Authorization": "Bearer " + API.token },
+      body: formData
+    });
+    if(!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || "Upload failed");
+    }
+    
+    $("pmsg").textContent = `Success! R${$("pamount").value} added to ${memberName}'s history and balance.`;
+    $("pmsg").hidden = false;
+    $("pamount").value = "1000";
+    $("pnote").value = "";
+    loadMembers(); // Instantly refresh the balances table below
+    
+  } catch(ex) { alert(ex.message); }
+};
+
+loadMembers();
+</script>
+</body></html>
+

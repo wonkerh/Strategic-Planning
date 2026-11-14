@@ -2,6 +2,11 @@
 import { db } from "../db.js";
 import { requireAuth, requireAdmin } from "../middleware.js";
 import { hash } from "../auth.js";
+import multer from "multer";
+
+// Store the image in memory so we can convert it to Base64
+const storage = multer.memoryStorage();
+const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } }); // 5MB limit
 
 const r = Router();
 r.use(requireAuth, requireAdmin);
@@ -39,6 +44,72 @@ r.post("/users", async (req, res) => {
   if (exists) return res.status(409).json({ error: "That user name is taken" });
   db.prepare("INSERT INTO users (name, pass_hash, role) VALUES (?, ?, 'member')").run(name, await hash(pass));
   res.status(201).json({ ok: true });
+});
+
+// --- MEMBER BALANCES ---
+r.get("/balances", (req, res) => {
+  const users = db.prepare("SELECT id, name, role, created_at FROM users WHERE role = 'member' ORDER BY name ASC").all();
+  const allTxs = db.prepare("SELECT user_id, amount, kind FROM transactions").all();
+
+  const balances = users.map(u => {
+    const userTxs = allTxs.filter(t => t.user_id === u.id);
+    const deposits = userTxs.filter(t => t.kind === "deposit").reduce((sum, t) => sum + t.amount, 0);
+    const withdrawals = userTxs.filter(t => t.kind === "withdraw").reduce((sum, t) => sum + t.amount, 0);
+    const total = deposits - withdrawals;
+    return { id: u.id, name: u.name, joined: u.created_at.split(" ")[0], totalInvested: total, units: total / 1000 };
+  });
+
+  res.json({ balances });
+});
+
+// --- ADMIN MANUAL DEPOSIT (With Base64 Image) ---
+r.post("/manual-deposit", upload.single("proof"), (req, res) => {
+  const userId = Number(req.body?.userId);
+  const amount = Number(req.body?.amount);
+  const date = String(req.body?.date || "");
+  const note = String(req.body?.note || "Committee Recorded Payment");
+  
+  // Convert uploaded image to Base64 text
+  let proof_base64 = null;
+  if (req.file) {
+    proof_base64 = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+  }
+
+  if (!Number.isFinite(amount) || amount <= 0) return res.status(400).json({ error: "Amount must be > 0" });
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({ error: "Date must be YYYY-MM-DD" });
+
+  const user = db.prepare("SELECT id FROM users WHERE id = ?").get(userId);
+  if (!user) return res.status(404).json({ error: "User not found" });
+
+  const depositDate = new Date(date);
+  depositDate.setFullYear(depositDate.getFullYear() + 1);
+  const end_date = depositDate.toISOString().slice(0, 10);
+
+  db.prepare(
+    "INSERT INTO transactions (user_id, kind, amount, note, date, end_date, is_locked, proof_file) VALUES (?, 'deposit', ?, ?, ?, ?, 1, ?)"
+  ).run(userId, amount, note, date, end_date, proof_base64);
+
+  res.json({ ok: true });
+});
+
+// --- BULK MEMBER CREATION ---
+r.post("/bulk-users", async (req, res) => {
+  const members = req.body?.members || [];
+  if (!Array.isArray(members) || members.length === 0) return res.status(400).json({ error: "No members provided" });
+  const results = { success: 0, failed: 0, errors: [] };
+  for (const m of members) {
+    const name = String(m.name || "").trim();
+    const pass = String(m.pass || "Welcome123");
+    if (name.length < 2 || name.length > 40) { results.failed++; results.errors.push(`"${name}": Name must be 2-40 characters`); continue; }
+    const exists = db.prepare("SELECT 1 FROM users WHERE name = ? COLLATE NOCASE").get(name);
+    if (exists) { results.failed++; results.errors.push(`"${name}": User already exists`); continue; }
+    try {
+      const hashedPass = await hash(pass);
+      db.prepare("INSERT INTO users (name, pass_hash, role) VALUES (?, ?, 'member')").run(name, hashedPass);
+      results.success++;
+    } catch (err) { results.failed++; results.errors.push(`"${name}": Database error`); }
+  }
+  res.json(results);
 });
 
 // --- REPORTS MANAGEMENT ---

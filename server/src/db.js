@@ -36,6 +36,7 @@ db.exec(`
     date       TEXT NOT NULL,
     end_date   TEXT,
     is_locked  INTEGER DEFAULT 0,
+    proof_file TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 

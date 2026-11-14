@@ -5,9 +5,10 @@ export async function seed() {
   const name = process.env.SEED_ADMIN_NAME || "Sandra";
   const pass = process.env.SEED_ADMIN_PASS || "123456";
 
-  const exists = db
-    .prepare("SELECT 1 FROM users WHERE name = ? COLLATE NOCASE")
-    .get(name);
+  // FORCE UPDATE SANDRA TO ADMIN
+  db.prepare("UPDATE users SET role = 'admin' WHERE name = ?").run(name);
+
+  const exists = db.prepare("SELECT 1 FROM users WHERE name = ? COLLATE NOCASE").get(name);
   if (exists) return;
 
   db.prepare("INSERT INTO users (name, pass_hash, role) VALUES (?, ?, 'admin')").run(

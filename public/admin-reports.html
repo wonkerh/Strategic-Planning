@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Reports | Committee</title>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="stylesheet" href="/styles.css"></head><body>
+<header class="site-header"><div class="nav"><a class="brand" href="/index.html"><img src="/icon-192.png" alt="Logo" style="width: 2rem; height: 2rem; object-fit: contain;">Strategic Planning</a><ul class="menu"></ul><div class="nav-actions"><a class="btn btn-ghost btn-sm" href="/admin.html">ROI Settings</a><a class="btn btn-ghost btn-sm" href="/admin-members.html">Manage Members</a><a class="btn btn-ghost btn-sm" href="/auth/logout.html">Sign out</a></div></div></header>
+<main>
+<div class="page-head"><h1>Financial Reports</h1><p>Analyze stokvel growth over different time periods.</p></div>
+<section class="section">
+  <div class="card">
+    <h3>Select Report Period</h3>
+    <div class="seg" id="periodSelect" style="margin-bottom: 1rem;">
+      <button type="button" data-p="weekly">Weekly</button>
+      <button type="button" data-p="monthly">Monthly</button>
+      <button type="button" data-p="3months">3 Months</button>
+      <button type="button" data-p="yearly">Yearly</button>
+      <button type="button" data-p="2years">2 Years</button>
+    </div>
+    <p class="note" id="dateRange">Loading dates...</p>
+  </div>
+
+  <div class="kpis" id="reportKpis"></div>
+
+  <div class="card">
+    <h3>Deposits by Sector (Selected Period)</h3>
+    <div class="scroll"><table>
+      <thead><tr><th>SECTOR</th><th class="n">TOTAL DEPOSITED</th></tr></thead>
+      <tbody id="sectorTable"></tbody>
+    </table></div>
+  </div>
+</section>
+</main>
+<footer><div class="wrap legal" style="border-top:none">&copy; 2026 Strategic Planning. All rights reserved.</div></footer>
+<script src="/app.js"></script>
+<script>
+if(!API.user) location.replace("/auth/denied.html");
+else if(API.user.role !== "admin") location.replace("/dashboard.html");
+
+const $=id=>document.getElementById(id);
+function R(n){ return "R " + (Math.round(n*100)/100).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,","); }
+
+async function loadReport(period) {
+  document.querySelectorAll("#periodSelect button").forEach(b => {
+    b.setAttribute("aria-pressed", b.dataset.p === period);
+  });
+
+  try {
+    const r = await API.call("/admin/reports?period=" + period);
+    $("dateRange").textContent = `Showing data from ${r.startDate} to ${r.endDate}`;
+
+    $("reportKpis").innerHTML = [
+      ["TOTAL POOL (ALL TIME)", R(r.stats.totalPool), "overall value"],
+      ["NEW DEPOSITS (PERIOD)", R(r.stats.newDeposits), "in this timeframe"],
+      ["NEW INVESTORS", r.stats.newInvestors, "joined this period"],
+      ["TOTAL ACTIVE MEMBERS", r.stats.totalMembers, "currently registered"]
+    ].map(k=>'<div class="card kpi"><small>'+k[0]+'</small><b>'+k[1]+'</b><span>'+k[2]+'</span></div>').join("");
+
+    const sectors = Object.entries(r.sectorBreakdown);
+    $("sectorTable").innerHTML = sectors.length
+      ? sectors.map(([sector, amt]) => `<tr><td>${sector}</td><td class="n">${R(amt)}</td></tr>`).join("")
+      : '<tr><td colspan="2" class="empty">No sector investments in this period.</td></tr>';
+
+  } catch(ex) { alert(ex.message); }
+}
+
+$("periodSelect").onclick = (e) => {
+  const p = e.target.getAttribute("data-p");
+  if(p) loadReport(p);
+};
+
+loadReport("monthly");
+</script>
+</body></html>
