@@ -1,0 +1,110 @@
+﻿<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Membership Application | Visionary Wealth Circle</title>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="stylesheet" href="/styles.css"></head><body>
+<header class="site-header"><div class="nav"><a class="brand" href="/index.html"><img src="/icon-192.png" alt="Logo" style="width: 2rem; height: 2rem; object-fit: contain;">Visionary Wealth Circle</a><div class="nav-actions"><a class="btn btn-ghost btn-sm" href="/auth/logout.html">Sign out</a></div></div></header>
+<main>
+<div class="page-head"><h1>Stokvel Membership Application</h1><p>Please complete this confidential registration form to access your dashboard.</p></div>
+<section class="section"><div style="max-width:44rem;display:grid;gap:1rem;margin:0 auto;">
+<form class="card" id="pform" novalidate>
+  
+  <h3>1. Applicant Details</h3>
+  <div class="form-grid">
+    <label>SA ID / Passport No.<input id="id_number" required></label>
+    <label>Date of Birth<input id="dob" type="date" required></label>
+  </div>
+  <div class="form-grid">
+    <label>Nationality<input id="nationality" required></label>
+    <label>Mobile Number<input id="mobile" type="tel" required></label>
+    <label>WhatsApp Number<input id="whatsapp" type="tel" required></label>
+  </div>
+  <label>Residential Address<textarea id="address" rows="2" required></textarea></label>
+
+  <h3 style="margin-top: 1.5rem;">2. Membership & Contribution</h3>
+  <div class="form-grid">
+    <label>Secondary Members<input id="secondary_members" type="number" value="0" min="0"></label>
+    <label>Start Date<input id="start_date" type="date" required></label>
+    <label>Payment Method<select id="payment_method" required><option value="EFT">EFT / Bank Transfer</option><option value="Cash">Cash</option></select></label>
+  </div>
+
+  <h3 style="margin-top: 1.5rem;">4. Banking Details</h3>
+  <div class="form-grid">
+    <label>Account Holder<input id="bank_holder" required></label>
+    <label>Bank Name<input id="bank_name" required></label>
+    <label>Account Type<input id="bank_type" required placeholder="e.g. Cheque"></label>
+    <label>Account Number<input id="bank_acc" required></label>
+    <label>Branch Code<input id="bank_branch" required></label>
+  </div>
+
+  <h3 style="margin-top: 1.5rem;">5. Nominated Beneficiaries (Optional)</h3>
+  <div class="form-grid">
+    <label>Beneficiary 1 Name<input id="ben1_name"></label>
+    <label>Relationship<input id="ben1_relation"></label>
+    <label>ID / Passport<input id="ben1_id"></label>
+    <label>Phone<input id="ben1_phone"></label>
+  </div>
+  <div class="form-grid" style="margin-top: 0.5rem;">
+    <label>Beneficiary 2 Name<input id="ben2_name"></label>
+    <label>Relationship<input id="ben2_relation"></label>
+    <label>ID / Passport<input id="ben2_id"></label>
+    <label>Phone<input id="ben2_phone"></label>
+  </div>
+
+  <h3 style="margin-top: 1.5rem;">6. Required Documents & 7. Declaration</h3>
+  <p class="note" style="font-size: 0.9rem; margin-bottom: 1rem;">
+    I declare that the information provided is true and complete. I have received and read the Stokvel Constitution and Membership & Contribution Agreement and agree to comply with them. I understand that contributions may be used for approved business/assets and that business activities carry risks. I understand that projected returns are not automatically guaranteed.
+  </p>
+
+  <p class="err" id="err" hidden></p>
+  <button class="btn btn-primary" type="submit" style="justify-self:start; padding: 1rem 2rem; font-size: 1.1rem;">Submit Application & Access Dashboard</button>
+</form>
+</div></section>
+</main>
+<footer><div class="wrap legal" style="border-top:none">&copy; 2026 Visionary Wealth Circle. All rights reserved.</div></footer>
+<script src="/app.js"></script>
+<script>
+if(!API.user) location.replace("/auth/login.html");
+
+$("pform").onsubmit = async function(e){
+  e.preventDefault(); $("err").hidden = true;
+  
+  try{
+    await API.call("/auth/profile", { method:"POST", body: JSON.stringify({
+      id_number: $("id_number").value,
+      dob: $("dob").value,
+      nationality: $("nationality").value,
+      address: $("address").value,
+      mobile: $("mobile").value,
+      whatsapp: $("whatsapp").value,
+      secondary_members: $("secondary_members").value,
+      start_date: $("start_date").value,
+      payment_method: $("payment_method").value,
+      bank_holder: $("bank_holder").value,
+      bank_name: $("bank_name").value,
+      bank_type: $("bank_type").value,
+      bank_acc: $("bank_acc").value,
+      bank_branch: $("bank_branch").value,
+      ben1_name: $("ben1_name").value,
+      ben1_relation: $("ben1_relation").value,
+      ben1_id: $("ben1_id").value,
+      ben1_phone: $("ben1_phone").value,
+      ben2_name: $("ben2_name").value,
+      ben2_relation: $("ben2_relation").value,
+      ben2_id: $("ben2_id").value,
+      ben2_phone: $("ben2_phone").value
+    })});
+    
+    var u = API.user;
+    u.profile_complete = 1;
+    API.set(API.token, u);
+    
+    location.href = "/dashboard.html";
+  }catch(ex){ 
+    $("err").textContent = ex.message; 
+    $("err").hidden = false; 
+  }
+};
+</script>
+</body></html>

@@ -14,7 +14,30 @@ db.exec(`
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     name       TEXT NOT NULL UNIQUE COLLATE NOCASE,
     full_name  TEXT NOT NULL,
-    email      TEXT,
+        email      TEXT,
+    id_number  TEXT,
+    dob        TEXT,
+    nationality TEXT,
+    address    TEXT,
+    mobile     TEXT,
+    whatsapp   TEXT,
+    secondary_members INTEGER DEFAULT 0,
+    start_date TEXT,
+    payment_method TEXT,
+    bank_holder TEXT,
+    bank_name  TEXT,
+    bank_type  TEXT,
+    bank_acc   TEXT,
+    bank_branch TEXT,
+    ben1_name  TEXT,
+    ben1_relation TEXT,
+    ben1_id    TEXT,
+    ben1_phone TEXT,
+    ben2_name  TEXT,
+    ben2_relation TEXT,
+    ben2_id    TEXT,
+    ben2_phone TEXT,
+    profile_complete INTEGER DEFAULT 0,
     pass_hash  TEXT NOT NULL,
     role       TEXT NOT NULL DEFAULT 'member',
     is_temp_pass INTEGER DEFAULT 0,
@@ -61,5 +84,6 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_inv_sector ON investments(sector);
   CREATE INDEX IF NOT EXISTS idx_tx_user    ON transactions(user_id);
 `);
+
 
 

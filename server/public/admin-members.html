@@ -1,0 +1,78 @@
+﻿<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Manage Members | Committee</title>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="stylesheet" href="/styles.css"></head><body>
+<header class="site-header"><div class="nav"><a class="brand" href="/index.html"><img src="/icon-192.png" alt="Logo" style="width: 2rem; height: 2rem; object-fit: contain;">Strategic Planning</a><ul class="menu"></ul><div class="nav-actions"><a class="btn btn-ghost btn-sm" href="/admin.html">ROI Settings</a><a class="btn btn-ghost btn-sm" href="/auth/logout.html">Sign out</a></div></div></header>
+<main>
+<div class="page-head"><h1>Manage Members</h1><p>Generate login details for investors who have paid their R1,000.</p></div>
+<section class="section">
+  <div class="panels">
+    <form class="card" id="mform">
+      <h3>Add Verified Investor</h3>
+      <div class="form-grid">
+        <label>Full Name<input id="mname" required placeholder="e.g. John Doe"></label>
+        <label>Initial Units (R)<input id="munits" type="number" value="1000" readonly style="background:var(--bg-band); cursor:not-allowed;"></label>
+      </div>
+      <label>Temporary Password<input id="mpass" required value="Welcome123" minlength="6"></label>
+      <button class="btn btn-primary btn-sm" type="submit" style="justify-self:start">Create Account</button>
+      <p class="note" id="mmsg" hidden style="color:var(--ok); font-weight:bold;"></p>
+    </form>
+
+    <div class="card">
+      <h3>Active Members</h3>
+      <div class="scroll"><table>
+        <thead><tr><th>NAME</th><th>ROLE</th><th>JOINED</th></tr></thead>
+        <tbody id="memList"></tbody>
+      </table></div>
+    </div>
+  </div>
+</section>
+</main>
+<footer><div class="wrap legal" style="border-top:none">&copy; 2026 Strategic Planning. All rights reserved.</div></footer>
+<script src="/app.js"></script>
+<script>
+console.log("=== ADMIN MEMBERS PAGE LOADED ===");
+console.log("Current API.user object:", API.user);
+if(!API.user) {
+  console.log("Redirecting because API.user is null (Not logged in)");
+  location.replace("/auth/denied.html");
+}
+else if(API.user.role !== "admin") {
+  console.log("Redirecting because API.user.role is:", API.user.role, " (Not admin)");
+  location.replace("/dashboard.html");
+}
+else {
+  console.log("Access granted! User is admin.");
+}
+
+const $=id=>document.getElementById(id);
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+
+async function loadMembers(){
+  try {
+    const r = await API.call("/admin/users");
+    $("memList").innerHTML = r.users.map(u=>`<tr><td>${esc(u.name)}</td><td>${u.role}</td><td>${u.created_at.split(" ")[0]}</td></tr>`).join("");
+  } catch(ex) { console.error(ex); }
+}
+
+$("mform").onsubmit = async (e) => {
+  e.preventDefault();
+  $("mmsg").hidden = true;
+  try {
+    await API.call("/admin/users", {
+      method: "POST",
+      body: JSON.stringify({ name: $("mname").value.trim(), pass: $("mpass").value })
+    });
+    $("mmsg").textContent = "Account created successfully!";
+    $("mmsg").hidden = false;
+    $("mname").value = "";
+    loadMembers();
+  } catch(ex) { alert(ex.message); }
+};
+
+loadMembers();
+</script>
+</body></html>
+

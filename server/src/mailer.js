@@ -1,8 +1,10 @@
-﻿// Email templates for Visionary Wealth Circle.
-// Pure functions: no dependencies, so they can be previewed without sending anything.
+﻿import { Resend } from 'resend';
+import dotenv from 'dotenv';
+dotenv.config();
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const C = {
-  // Original Visionary Wealth Circle palette
   navy: '#0B2D59',
   gold: '#D1A33A',
   green: '#3A8A36',
@@ -18,7 +20,7 @@ const SERIF = "Georgia, 'Times New Roman', serif";
 const SANS = "'Helvetica Neue', Helvetica, Arial, sans-serif";
 const MONO = "'Courier New', Courier, monospace";
 
-export function esc(value) {
+function esc(value) {
   return String(value ?? '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -47,9 +49,7 @@ function layout({ preheader, eyebrow, content }) {
 <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:transparent;">${esc(preheader)}</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${C.soft};">
 <tr><td align="center" style="padding:36px 12px;">
-
   <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%; max-width:600px;">
-
     <!-- Masthead -->
     <tr><td align="center" style="padding:0 0 22px 0;">
       <table role="presentation" cellpadding="0" cellspacing="0" border="0">
@@ -63,7 +63,6 @@ function layout({ preheader, eyebrow, content }) {
     <!-- Card -->
     <tr><td style="background-color:${C.paper}; border-radius:14px; overflow:hidden; border:1px solid ${C.gold};">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-
         <tr><td class="px" align="center" style="background-color:${C.navy}; padding:34px 40px 30px 40px;">
           <p style="margin:0; font-family:${SANS}; font-size:11px; font-weight:bold; letter-spacing:4px; color:${C.gold};">${esc(eyebrow)}</p>
           <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:14px auto 0 auto;">
@@ -76,20 +75,15 @@ function layout({ preheader, eyebrow, content }) {
         </td></tr>
 
         <tr><td style="height:4px; line-height:4px; font-size:0; background-color:${C.gold};">&nbsp;</td></tr>
-
         <tr><td class="px" style="padding:40px 44px 36px 44px; font-family:${SANS}; color:${C.ink};">
           ${content}
         </td></tr>
-
         <tr><td class="px" align="center" style="background-color:${C.soft}; border-top:1px solid ${C.line}; padding:22px 40px;">
           <p style="margin:0; font-family:${SANS}; font-size:12px; line-height:18px; color:${C.muted};">&copy; 2026 Visionary Wealth Circle. All rights reserved.</p>
         </td></tr>
-
       </table>
     </td></tr>
-
   </table>
-
 </td></tr>
 </table>
 </body>
@@ -112,14 +106,13 @@ function row(label, valueHtml, last = false) {
   </tr>`;
 }
 
-export function credentialsEmailHtml(fullName, username, tempPassword) {
+function credentialsEmailHtml(fullName, username, tempPassword) {
   const content = `
     <h1 class="hero" style="margin:0 0 6px 0; font-family:${SERIF}; font-size:30px; line-height:38px; font-weight:normal; color:${C.navy};">Welcome to Visionary Wealth Circle, <span style="font-style:italic; color:${C.navy};">${esc(fullName)}</span>!</h1>
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:18px 0 22px 0;"><tr><td style="width:48px; border-top:3px solid ${C.gold}; font-size:0; line-height:0;">&nbsp;</td></tr></table>
     <p style="margin:0 0 10px 0; font-size:16px; line-height:25px; color:${C.muted};">Your account has been successfully created by the committee.</p>
     <p style="margin:0 0 26px 0; font-size:16px; line-height:25px; color:${C.muted};">Here are your login details:</p>
 
-    <!-- Access card -->
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${C.panel}; border:1px solid ${C.line}; border-top:4px solid ${C.gold}; border-radius:10px; margin:0 0 26px 0;">
       <tr><td style="padding:22px 26px 10px 26px;">
         <p style="margin:0 0 4px 0; font-family:${SANS}; font-size:11px; font-weight:bold; letter-spacing:3px; color:${C.navy};">MEMBER ACCESS</p>
@@ -130,7 +123,6 @@ export function credentialsEmailHtml(fullName, username, tempPassword) {
       </td></tr>
     </table>
 
-    <!-- Notice -->
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 30px 0;">
       <tr>
         <td width="4" style="background-color:${C.gold}; border-radius:4px;">&nbsp;</td>
@@ -145,14 +137,10 @@ export function credentialsEmailHtml(fullName, username, tempPassword) {
 
     <p style="margin:36px 0 0 0; padding-top:22px; border-top:1px solid ${C.line}; font-size:12px; line-height:19px; color:${C.muted}; text-align:center;">If you did not request this, please contact the committee immediately.</p>
   `;
-  return layout({
-    preheader: 'Your account has been created. Here are your login details.',
-    eyebrow: 'WELCOME',
-    content,
-  });
+  return layout({ preheader: 'Your account has been created. Here are your login details.', eyebrow: 'WELCOME', content });
 }
 
-export function depositEmailHtml(fullName, amount, date, note) {
+function depositEmailHtml(fullName, amount, date, note) {
   const amt = Number(amount).toFixed(2);
   const content = `
     <p style="margin:0 0 6px 0; font-family:${SANS}; font-size:11px; font-weight:bold; letter-spacing:3px; color:${C.navy}; text-align:center;">PAYMENT CONFIRMED</p>
@@ -167,7 +155,6 @@ export function depositEmailHtml(fullName, amount, date, note) {
       We have successfully recorded your contribution to the stokvel.
     </p>
 
-    <!-- Receipt -->
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${C.panel}; border:1px solid ${C.line}; border-top:4px solid ${C.gold}; border-radius:10px; margin:0 0 26px 0;">
       <tr><td style="padding:22px 26px 10px 26px;">
         <p style="margin:0 0 4px 0; font-family:${SANS}; font-size:11px; font-weight:bold; letter-spacing:3px; color:${C.navy};">TRANSACTION DETAILS</p>
@@ -190,9 +177,45 @@ export function depositEmailHtml(fullName, amount, date, note) {
 
     ${button('https://www.strategicplanning.dpdns.org/wallet.html', 'View Your Wallet', C.green)}
   `;
-  return layout({
-    preheader: `Your contribution of R ${amt} has been recorded.`,
-    eyebrow: 'RECEIPT',
-    content,
-  });
+  return layout({ preheader: `Your contribution of R ${amt} has been recorded.`, eyebrow: 'RECEIPT', content });
+}
+
+// --- ACTUAL SENDING FUNCTIONS ---
+
+export async function sendCredentialsEmail(toEmail, fullName, username, tempPassword) {
+  try {
+    const { data, error } = await resend.emails.send({
+      from: 'Visionary Wealth Circle <onboarding@resend.dev>',
+      to: [toEmail],
+      subject: 'Your Visionary Wealth Circle Login Details',
+      html: credentialsEmailHtml(fullName, username, tempPassword),
+    });
+
+    if (error) {
+      console.error("Resend Error:", error);
+      return { success: false, error: error.message };
+    }
+    return { success: true, data };
+  } catch (err) {
+    console.error("Email sending failed:", err);
+    return { success: false, error: err.message };
+  }
+}
+
+export async function sendDepositEmail(toEmail, fullName, amount, date, note) {
+  if (!toEmail) return { success: false, error: "No email on file" };
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: 'Visionary Wealth Circle <onboarding@resend.dev>',
+      to: [toEmail],
+      subject: 'Payment Received - Visionary Wealth Circle',
+      html: depositEmailHtml(fullName, amount, date, note),
+    });
+
+    if (error) return { success: false, error: error.message };
+    return { success: true, data };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
 }
