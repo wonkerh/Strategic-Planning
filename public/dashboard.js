@@ -6,7 +6,7 @@ function R(n){return "R "+Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))
 var SEC=[["Logistics","#2F7FB0"],["Commercial agriculture","#2E7D5B"],["Mining","#6B4226"],["Distribution centres","#B8892A"]];
 var tab="All", DATA=null;
 
-$("hi").textContent="Welcome, "+me.name;
+$("hi").textContent="Welcome, "+(me.full_name || me.name);
 $("sector").innerHTML=SEC.map(function(s){return "<option>"+s[0]+"</option>"}).join("");
 $("date").valueAsDate=new Date();
 $("seg").innerHTML=["All"].concat(SEC.map(function(s){return s[0]})).map(function(t){return '<button type="button" data-t="'+t+'">'+(t==="All"?"All sectors":t)+'</button>'}).join("");
@@ -18,11 +18,13 @@ async function load(){
 
 function render(){
   var t=DATA.totals;
+  
+  // ONLY SHOW THE LOGGED-IN USER'S DATA IN THE TOP CARDS
   $("kpis").innerHTML=[
     ["MY TOTAL INVESTED",R(t.my),t.payments+" payments"],
-    ["MY SHARE OF THE POOL",(t.mySharePct||0).toFixed(1)+"%","of "+R(t.pool)],
-    ["TOTAL POOL",R(t.pool),"all sectors"],
-    ["MEMBERS INVESTING",t.membersInvesting,"including you"]
+    ["MY SHARE OF THE POOL",(t.mySharePct||0).toFixed(1)+"%","personal percentage"],
+    ["MY AVERAGE PAYMENT",t.payments > 0 ? R(t.my / t.payments) : "R 0","per payment"],
+    ["MEMBERS IN GROUP",t.membersInvesting,"total active members"]
   ].map(function(k){return '<div class="card kpi"><small>'+k[0]+'</small><b>'+k[1]+'</b><span>'+k[2]+'</span></div>'}).join("");
 
   $("alloc").innerHTML=!t.my
@@ -35,7 +37,7 @@ function render(){
   document.querySelectorAll("#seg button").forEach(function(b){b.setAttribute("aria-pressed",String(b.dataset.t===tab))});
 
   if(tab==="All"){
-    $("sh").innerHTML='<tr><th>SECTOR</th><th class="n">TOTAL INVESTED</th><th class="n">MEMBERS</th><th class="n">MY AMOUNT</th></tr>';
+    $("sh").innerHTML='<tr><th>SECTOR</th><th class="n">GROUP TOTAL</th><th class="n">MEMBERS</th><th class="n">MY AMOUNT</th></tr>';
     $("sb").innerHTML=DATA.sectors.map(function(s,i){
       return '<tr><td><i class="sw" style="background:'+SEC[i][1]+'"></i>'+esc(s.name)+'</td><td class="n">'+R(s.total)+'</td><td class="n">'+s.members+'</td><td class="n">'+R(s.mine)+'</td></tr>'
     }).join("");
@@ -65,9 +67,7 @@ $("iform").onsubmit=async function(e){
   e.preventDefault();
   var a=parseFloat($("amt").value);if(!(a>0))return;
   try{
-    await API.call("/investments",{method:"POST",body:JSON.stringify({
-      sector:$("sector").value, amount:a, date:$("date").value
-    })});
+    await API.call("/investments",{method:"POST",body:JSON.stringify({sector:$("sector").value, amount:a, date:$("date").value})});
     $("amt").value="";await load();
   }catch(ex){alert(ex.message)}
 };
@@ -80,7 +80,7 @@ $("mine").onclick=async function(e){
 };
 
 $("seg").onclick=function(e){var t=e.target.getAttribute("data-t");if(t){tab=t;render()}};
-var so=$("so");if(so)so.onclick=function(){API.clear();location.href="index.html"};
+var so=$("so");if(so)so.onclick=function(){API.clear();location.href="/index.html"};
 
 load();
 })();

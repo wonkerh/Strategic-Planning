@@ -2,12 +2,10 @@
 import { db } from "../db.js";
 import { requireAuth, requireAdmin } from "../middleware.js";
 import { hash } from "../auth.js";
+import { sendCredentialsEmail } from "../mailer.js";
 import multer from "multer";
 
-// Store the image in memory so we can convert it to Base64
-const storage = multer.memoryStorage();
-const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } }); // 5MB limit
-
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 const r = Router();
 r.use(requireAuth, requireAdmin);
 
@@ -32,23 +30,35 @@ r.delete("/roi/:month", (req, res) => {
 
 // --- MEMBER MANAGEMENT ---
 r.get("/users", (req, res) => {
-  const users = db.prepare("SELECT id, name, role, created_at FROM users ORDER BY name ASC").all();
+  const users = db.prepare("SELECT id, name, full_name, email, role, is_temp_pass, created_at FROM users ORDER BY name ASC").all();
   res.json({ users });
 });
+
 r.post("/users", async (req, res) => {
-  const name = String(req.body?.name || "").trim();
-  const pass = String(req.body?.pass || "");
-  if (name.length < 2 || name.length > 40) return res.status(400).json({ error: "Name must be 2-40 characters" });
-  if (pass.length < 6) return res.status(400).json({ error: "Password must be at least 6 characters" });
-  const exists = db.prepare("SELECT 1 FROM users WHERE name = ? COLLATE NOCASE").get(name);
-  if (exists) return res.status(409).json({ error: "That user name is taken" });
-  db.prepare("INSERT INTO users (name, pass_hash, role) VALUES (?, ?, 'member')").run(name, await hash(pass));
-  res.status(201).json({ ok: true });
+  const full_name = String(req.body?.name || "").trim();
+  const email = String(req.body?.email || "").trim();
+  const pass = "Temp1234"; 
+  
+  if (full_name.length < 2) return res.status(400).json({ error: "Name must be at least 2 characters" });
+  if (!email || !email.includes("@")) return res.status(400).json({ error: "Valid email is required" });
+
+  const count = db.prepare("SELECT COUNT(*) as c FROM users").get().c;
+  const uniqueId = `SP-${1000 + count + 1}`;
+
+  db.prepare("INSERT INTO users (name, full_name, email, pass_hash, role, is_temp_pass) VALUES (?, ?, ?, ?, 'member', 1)")
+    .run(uniqueId, full_name, email, await hash(pass));
+    
+  const emailResult = await sendCredentialsEmail(email, full_name, uniqueId, pass);
+
+  if (!emailResult.success) {
+    return res.status(201).json({ ok: true, username: uniqueId, tempPass: pass, full_name, warning: "Account created but email failed to send. Please provide details manually." });
+  }
+  res.status(201).json({ ok: true, username: uniqueId, tempPass: pass, full_name });
 });
 
 // --- MEMBER BALANCES ---
 r.get("/balances", (req, res) => {
-  const users = db.prepare("SELECT id, name, role, created_at FROM users WHERE role = 'member' ORDER BY name ASC").all();
+  const users = db.prepare("SELECT id, name, full_name, email, role, created_at FROM users WHERE role = 'member' ORDER BY name ASC").all();
   const allTxs = db.prepare("SELECT user_id, amount, kind FROM transactions").all();
 
   const balances = users.map(u => {
@@ -56,7 +66,7 @@ r.get("/balances", (req, res) => {
     const deposits = userTxs.filter(t => t.kind === "deposit").reduce((sum, t) => sum + t.amount, 0);
     const withdrawals = userTxs.filter(t => t.kind === "withdraw").reduce((sum, t) => sum + t.amount, 0);
     const total = deposits - withdrawals;
-    return { id: u.id, name: u.name, joined: u.created_at.split(" ")[0], totalInvested: total, units: total / 1000 };
+    return { id: u.id, name: u.name, full_name: u.full_name, email: u.email, joined: u.created_at.split(" ")[0], totalInvested: total, units: total / 1000 };
   });
 
   res.json({ balances });
@@ -69,7 +79,6 @@ r.post("/manual-deposit", upload.single("proof"), (req, res) => {
   const date = String(req.body?.date || "");
   const note = String(req.body?.note || "Committee Recorded Payment");
   
-  // Convert uploaded image to Base64 text
   let proof_base64 = null;
   if (req.file) {
     proof_base64 = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
@@ -96,18 +105,23 @@ r.post("/manual-deposit", upload.single("proof"), (req, res) => {
 r.post("/bulk-users", async (req, res) => {
   const members = req.body?.members || [];
   if (!Array.isArray(members) || members.length === 0) return res.status(400).json({ error: "No members provided" });
-  const results = { success: 0, failed: 0, errors: [] };
+  const results = { success: 0, failed: 0, errors: [], created: [] };
+  let count = db.prepare("SELECT COUNT(*) as c FROM users").get().c;
+  const tempPass = "Temp1234";
+
   for (const m of members) {
-    const name = String(m.name || "").trim();
-    const pass = String(m.pass || "Welcome123");
-    if (name.length < 2 || name.length > 40) { results.failed++; results.errors.push(`"${name}": Name must be 2-40 characters`); continue; }
-    const exists = db.prepare("SELECT 1 FROM users WHERE name = ? COLLATE NOCASE").get(name);
-    if (exists) { results.failed++; results.errors.push(`"${name}": User already exists`); continue; }
+    const full_name = String(m.name || "").trim();
+    if (full_name.length < 2) { results.failed++; results.errors.push(`"${full_name}": Name too short`); continue; }
+    
+    const uniqueId = `SP-${1000 + count + 1}`;
+    count++;
+
     try {
-      const hashedPass = await hash(pass);
-      db.prepare("INSERT INTO users (name, pass_hash, role) VALUES (?, ?, 'member')").run(name, hashedPass);
+      db.prepare("INSERT INTO users (name, full_name, email, pass_hash, role, is_temp_pass) VALUES (?, ?, ?, ?, 'member', 1)")
+        .run(uniqueId, full_name, null, await hash(tempPass));
       results.success++;
-    } catch (err) { results.failed++; results.errors.push(`"${name}": Database error`); }
+      results.created.push({ full_name, username: uniqueId, tempPass });
+    } catch (err) { results.failed++; results.errors.push(`"${full_name}": Database error`); }
   }
   res.json(results);
 });

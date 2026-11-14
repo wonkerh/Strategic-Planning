@@ -212,3 +212,22 @@ main>*:not(.band){max-width:72rem;margin-inline:auto}
   border-top: 1px solid var(--line);
 }
 
+
+/* User Chip Subtitle Styling */
+.user-chip .user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  line-height: 1.1;
+  margin-right: 0.75rem;
+}
+.user-chip .user-name {
+  font: 700 0.9rem var(--font-body);
+  color: var(--fg);
+}
+.user-chip .user-id {
+  font: 600 0.65rem var(--font-mono);
+  color: var(--bad); /* Red color */
+  margin-top: 2px;
+}

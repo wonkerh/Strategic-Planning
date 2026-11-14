@@ -1,0 +1,49 @@
+﻿<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Create account | Visionary Wealth Circle Stokvel</title>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="stylesheet" href="/styles.css"></head><body>
+<header class="site-header"><div class="nav"><a class="brand" href="/index.html"><img src="/icon-192.png" alt="Logo" style="width: 2rem; height: 2rem; object-fit: contain;">Visionary Wealth Circle</a><ul class="menu"><li><a href="/index.html">Home</a></li><li><a href="/about.html">About</a></li><li><a href="/sectors.html">Sectors</a></li><li><a href="/how-to-join.html">How to join</a></li><li><a href="/dashboard.html">Dashboard</a></li><li><a href="/contact.html">Contact</a></li></ul><div class="nav-actions"><a class="btn btn-ghost btn-sm" href="/index.html">Back to site</a><a class="btn btn-primary btn-sm" href="#" data-wa>Join on WhatsApp</a></div></div></header>
+<main>
+<div class="page-head"><h1>Create your account</h1><p>New members register here. The committee confirms your contribution schedule in the WhatsApp group.</p></div>
+<section class="section"><div style="max-width:28rem;display:grid;gap:1rem">
+<form class="card" id="rform" novalidate>
+  <h3>New member registration</h3>
+  <label>User name<input id="rname" autocomplete="username" required></label>
+  <label>Password<input id="rpass" type="password" autocomplete="new-password" minlength="6" required></label>
+  <label>Confirm password<input id="rpass2" type="password" autocomplete="new-password" minlength="6" required></label>
+  <p class="err" id="rerr" hidden></p>
+  <button class="btn btn-primary" type="submit" style="justify-self:start">Create account</button>
+  <p class="note" style="margin-top:.5rem">
+    Already registered? <a href="/auth/login.html">Sign in</a><br>
+    By registering you accept the <a href="/auth/terms.html">terms</a> and <a href="/auth/privacy.html">privacy notice</a>.
+  </p>
+</form>
+</div></section>
+</main>
+<footer>
+  <div class="wrap legal" style="border-top:none">
+    &copy; 2026 Visionary Wealth Circle. All rights reserved.
+    &middot; <a href="/auth/terms.html">Terms</a>
+    &middot; <a href="/auth/privacy.html">Privacy</a>
+  </div>
+</footer>
+<script src="/app.js"></script>
+<script>
+if(API.user) location.replace("/dashboard.html");
+$("rform").onsubmit = async function(e){
+  e.preventDefault(); $("rerr").hidden = true;
+  var p1 = $("rpass").value, p2 = $("rpass2").value;
+  if(p1 !== p2) { $("rerr").textContent = "Passwords do not match"; $("rerr").hidden = false; return; }
+  try{
+    var r = await API.call("/auth/register", { method:"POST", body: JSON.stringify({
+      name: $("rname").value.trim(), pass: p1
+    })});
+    API.set(r.token, r.user);
+    location.href = "/dashboard.html";
+  }catch(ex){ $("rerr").textContent = ex.message; $("rerr").hidden = false; }
+};
+</script>
+</body></html>
+

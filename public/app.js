@@ -10,7 +10,16 @@ var API = {
   TOKEN_KEY: "spToken",
   USER_KEY: "spUser",
   get token(){return localStorage.getItem(this.TOKEN_KEY)},
-  get user(){try{return JSON.parse(localStorage.getItem(this.USER_KEY)||"null")}catch(e){return null}},
+    get user(){
+    try {
+      var u = JSON.parse(localStorage.getItem(this.USER_KEY)||"null");
+      if (u && u.is_temp_pass === 1 && !location.pathname.includes("change-password") && !location.pathname.includes("logout")) {
+        location.replace("/auth/change-password.html?temp=1");
+        return null;
+      }
+      return u;
+    } catch(e) { return null; }
+  },
   set:function(t,u){localStorage.setItem(this.TOKEN_KEY,t);localStorage.setItem(this.USER_KEY,JSON.stringify(u))},
   clear:function(){localStorage.removeItem(this.TOKEN_KEY);localStorage.removeItem(this.USER_KEY)},
   call:async function(path,opts){
@@ -53,7 +62,7 @@ function renderNav(){
     }
     if (actions) {
       actions.innerHTML =
-        '<div class="user-chip"><span class="who">' + escapeHtml(user.name) + '</span><a class="btn btn-ghost btn-sm" href="/auth/logout.html">Sign out</a></div>';
+        '<div class="user-chip"><span class="who">' + escapeHtml(user.full_name || user.name) + ' (' + escapeHtml(user.name) + ')' + '</span><a class="btn btn-ghost btn-sm" href="/auth/logout.html">Sign out</a></div>';
     }
     if (mobile) {
       mobile.innerHTML = memberLinks.map(function(l){
@@ -106,4 +115,11 @@ renderNav();
 window.addEventListener("storage", function(e){
   if (e.key === "spToken") renderNav();
 });
+
+
+
+
+
+
+
 

@@ -10,3 +10,4 @@ function redirectIfSignedIn(){
   if (window.API && API.user) location.replace("../dashboard.html");
 }
 function goToDashboard(){ location.href = "../dashboard.html"; }
+

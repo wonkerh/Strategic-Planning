@@ -13,8 +13,11 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     name       TEXT NOT NULL UNIQUE COLLATE NOCASE,
+    full_name  TEXT NOT NULL,
+    email      TEXT,
     pass_hash  TEXT NOT NULL,
     role       TEXT NOT NULL DEFAULT 'member',
+    is_temp_pass INTEGER DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
@@ -58,3 +61,5 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_inv_sector ON investments(sector);
   CREATE INDEX IF NOT EXISTS idx_tx_user    ON transactions(user_id);
 `);
+
+

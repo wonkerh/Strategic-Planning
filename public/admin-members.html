@@ -4,7 +4,7 @@
 <title>Manage Members | Committee</title>
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="stylesheet" href="/styles.css"></head><body>
-<header class="site-header"><div class="nav"><a class="brand" href="/index.html"><img src="/icon-192.png" alt="Logo" style="width: 2rem; height: 2rem; object-fit: contain;">Strategic Planning</a><ul class="menu"></ul><div class="nav-actions"><a class="btn btn-ghost btn-sm" href="/admin.html">ROI</a><a class="btn btn-ghost btn-sm" href="/admin-balances.html">Balances</a><a class="btn btn-ghost btn-sm" href="/auth/logout.html">Sign out</a></div></div></header>
+<header class="site-header"><div class="nav"><a class="brand" href="/index.html"><img src="/icon-192.png" alt="Logo" style="width: 2rem; height: 2rem; object-fit: contain;">Visionary Wealth Circle</a><ul class="menu"></ul><div class="nav-actions"><a class="btn btn-ghost btn-sm" href="/admin.html">ROI</a><a class="btn btn-ghost btn-sm" href="/admin-balances.html">Balances</a><a class="btn btn-ghost btn-sm" href="/auth/logout.html">Sign out</a></div></div></header>
 <main>
 <div class="page-head"><h1>Manage Members & Payments</h1><p>Add users or record their monthly payments.</p></div>
 <section class="section">
@@ -14,14 +14,13 @@
     <form class="card" id="mform">
       <h3>Add Single Investor</h3>
       <div class="form-grid">
-        <label>Full Name<input id="mname" required placeholder="e.g. John Doe"></label>
-        <label>Temporary Password<input id="mpass" required value="Welcome123" minlength="6"></label>
+        <label>Full Name<input id="mname" required placeholder="e.g. John Doe"></label>`n        <label>Email Address<input id="memail" type="email" required placeholder="e.g. john@example.com"></label>
       </div>
       <button class="btn btn-primary btn-sm" type="submit" style="justify-self:start">Create Account</button>
       <p class="note" id="mmsg" hidden style="color:var(--ok); font-weight:bold;"></p>
     </form>
 
-    <!-- Manual Payment Form (Updated) -->
+    <!-- Manual Payment Form -->
     <form class="card" id="payform" style="border: 2px solid var(--gold); background: var(--bg-band);">
       <h3 style="color: var(--soil);">Record Member Payment</h3>
       <p class="note" style="margin-bottom: 1rem;">Select a member, enter the amount they paid, and the system will add it to their history and update their balance.</p>
@@ -35,24 +34,51 @@
         <label>Date Paid<input id="pdate" type="date" required></label>
       </div>
       
-      <label>Reason / Reference (optional)<input id="pnote" placeholder="e.g. October contribution"></label>`n      <label>Upload Proof of Payment (Image/PDF)<input id="pproof" type="file" accept="image/*,.pdf" required></label>
+      <label>Reason / Reference (optional)<input id="pnote" placeholder="e.g. October contribution"></label>
+      <label>Upload Proof of Payment (Image/PDF)<input id="pproof" type="file" accept="image/*,.pdf" required></label>
       
       <button class="btn btn-primary" type="submit" style="justify-self:start; background:var(--ok); font-size: 1rem; padding: 0.8rem 1.5rem;">Save Payment & Update Balance</button>
       <p class="note" id="pmsg" hidden style="color:var(--ok); font-weight:bold; font-size: 1.1rem;"></p>
     </form>
   </div>
 
+  <!-- Bulk Add Form -->
+  <div class="card" style="margin-top: 1rem; border: 2px solid var(--soil);">
+    <h3>Bulk Add Members</h3>
+    <p class="note" style="margin-bottom: 1rem;">Enter one full name per line. The system will automatically assign a unique ID and the temporary password <b>Temp1234</b> to everyone.</p>
+    
+    <div id="bulkInputArea">
+      <textarea id="bulkNames" rows="6" placeholder="John Doe&#10;Jane Smith&#10;Michael Johnson" style="width: 100%; font-family: monospace;"></textarea>
+      <button class="btn btn-primary btn-sm" id="bulkPreviewBtn" type="button" style="margin-top: 1rem; background: var(--soil);">Preview List</button>
+    </div>
+
+    <div id="bulkReviewArea" hidden>
+      <h4 style="margin-bottom: 0.5rem; color: var(--soil);">Confirm the following accounts:</h4>
+      <div class="scroll" style="max-height: 300px; margin-bottom: 1rem;">
+        <table>
+          <thead><tr><th>NAME</th><th>PASSWORD</th><th>STATUS</th></tr></thead>
+          <tbody id="bulkReviewList"></tbody>
+        </table>
+      </div>
+      <div class="cta-row">
+        <button class="btn btn-primary btn-sm" id="bulkConfirmBtn" type="button" style="background: var(--ok);">Confirm & Create All</button>
+        <button class="btn btn-ghost btn-sm" id="bulkCancelBtn" type="button">Cancel</button>
+      </div>
+      <p class="note" id="bulkResult" hidden style="margin-top: 1rem; font-weight: bold;"></p>
+    </div>
+  </div>
+
   <!-- Members List -->
   <div class="card" style="margin-top: 1rem;">
     <h3>Active Members & Balances</h3>
     <div class="scroll"><table>
-      <thead><tr><th>NAME</th><th>ROLE</th><th class="n">CURRENT BALANCE</th></tr></thead>
+      <thead><tr><th>MEMBER NAME (ID)</th><th>STATUS</th><th class="n">CURRENT BALANCE</th></tr></thead>
       <tbody id="memList"></tbody>
     </table></div>
   </div>
 </section>
 </main>
-<footer><div class="wrap legal" style="border-top:none">&copy; 2026 Strategic Planning. All rights reserved.</div></footer>
+<footer><div class="wrap legal" style="border-top:none">&copy; 2026 Visionary Wealth Circle. All rights reserved.</div></footer>
 <script src="/app.js"></script>
 <script>
 if(!API.user) location.replace("/auth/denied.html");
@@ -66,41 +92,53 @@ $("pdate").value = new Date().toISOString().slice(0,10);
 
 async function loadMembers(){
   try {
-    // Fetch both users and their balances
     const uRes = await API.call("/admin/users");
     const bRes = await API.call("/admin/balances");
     
-    // Populate Dropdown
+    // Populate Dropdown (Only members)
     const members = uRes.users.filter(u => u.role === "member");
     $("puser").innerHTML = '<option value="">-- Select Member --</option>' + 
-      members.map(u => `<option value="${u.id}">${esc(u.name)}</option>`).join("");
+      members.map(u => `<option value="${u.id}">${esc(u.full_name)} (${u.name})</option>`).join("");
 
     // Populate Table
-    $("memList").innerHTML = bRes.balances.map(b => `
-      <tr>
-        <td><b>${esc(b.name)}</b></td>
-        <td>Member</td>
-        <td class="n pos" style="font-weight: bold; font-size: 1.1rem;">${R(b.totalInvested)}</td>
-      </tr>
-    `).join("");
+    $("memList").innerHTML = bRes.balances.map(b => {
+      const u = uRes.users.find(x => x.id === b.id);
+      const fullName = u ? u.full_name : "Unknown";
+      const statusBadge = u && u.is_temp_pass === 1 
+        ? '<span style="color:var(--bad);font-size:0.8rem; font-weight:bold;">Temp Pass</span>' 
+        : '<span style="color:var(--ok);font-size:0.8rem;">Active</span>';
+
+      return `
+        <tr>
+          <td>
+            <b>${esc(fullName)}</b><br>
+            <small style="color:var(--muted)">ID: ${esc(b.name)}</small>
+          </td>
+          <td>${statusBadge}</td>
+          <td class="n pos" style="font-weight: bold; font-size: 1.1rem;">${R(b.totalInvested)}</td>
+        </tr>
+      `;
+    }).join("");
   } catch(ex) { console.error(ex); }
 }
 
+// --- SINGLE USER CREATION ---
 $("mform").onsubmit = async (e) => {
   e.preventDefault();
   $("mmsg").hidden = true;
   try {
-    await API.call("/admin/users", {
+    const res = await API.call("/admin/users", {
       method: "POST",
-      body: JSON.stringify({ name: $("mname").value.trim(), pass: $("mpass").value })
+      body: JSON.stringify({ name: $("mname").value.trim(), email: $("memail").value.trim() })
     });
-    $("mmsg").textContent = "Account created successfully!";
+    $("mmsg").innerHTML = `Account created!<br>ID: <b>${res.username}</b><br>Temp Pass: <b>${res.tempPass}</b><br><small>${res.warning || "Email sent successfully."}</small>`;
     $("mmsg").hidden = false;
     $("mname").value = "";
     loadMembers();
   } catch(ex) { alert(ex.message); }
 };
 
+// --- MANUAL PAYMENT ---
 $("payform").onsubmit = async (e) => {
   e.preventDefault();
   $("pmsg").hidden = true;
@@ -119,7 +157,6 @@ $("payform").onsubmit = async (e) => {
   if (file) formData.append("proof", file);
 
   try {
-    // Use raw fetch for FormData, not API.call
     const res = await fetch(API_BASE + "/admin/manual-deposit", {
       method: "POST",
       headers: { "Authorization": "Bearer " + API.token },
@@ -134,12 +171,71 @@ $("payform").onsubmit = async (e) => {
     $("pmsg").hidden = false;
     $("pamount").value = "1000";
     $("pnote").value = "";
+    $("pproof").value = "";
     loadMembers(); // Instantly refresh the balances table below
     
   } catch(ex) { alert(ex.message); }
 };
 
+// --- BULK USER CREATION ---
+let bulkList = [];
+
+$("bulkPreviewBtn").onclick = () => {
+  const raw = $("bulkNames").value;
+  const names = raw.split("\n").map(n => n.trim()).filter(n => n.length > 0);
+  
+  if(names.length === 0) return alert("Please enter at least one name.");
+
+  bulkList = names.map(name => ({ name: name }));
+
+  $("bulkReviewList").innerHTML = bulkList.map(b => `
+    <tr><td>${esc(b.name)}</td><td>Temp1234</td><td><span style="color:var(--ok)">Ready</span></td></tr>
+  `).join("");
+
+  $("bulkInputArea").hidden = true;
+  $("bulkReviewArea").hidden = false;
+};
+
+$("bulkCancelBtn").onclick = () => {
+  $("bulkReviewArea").hidden = true;
+  $("bulkInputArea").hidden = false;
+  $("bulkResult").hidden = true;
+};
+
+$("bulkConfirmBtn").onclick = async () => {
+  $("bulkConfirmBtn").disabled = true;
+  $("bulkConfirmBtn").textContent = "Creating...";
+  
+  try {
+    const res = await API.call("/admin/bulk-users", {
+      method: "POST",
+      body: JSON.stringify({ members: bulkList })
+    });
+
+    let html = `<span style="color:var(--ok)">Success: ${res.success} created.</span><br><br><table style="width:100%; font-size:0.85rem;"><tr><th>NAME</th><th>USERNAME</th><th>PASS</th></tr>`; 
+    res.created.forEach(c => html += `<tr><td>${c.full_name}</td><td><b>${c.username}</b></td><td>${c.tempPass}</td></tr>`); 
+    html += `</table>`;
+    
+    $("bulkResult").innerHTML = html;
+    $("bulkResult").hidden = false;
+    $("bulkNames").value = "";
+    loadMembers();
+
+    setTimeout(() => {
+      $("bulkCancelBtn").click();
+      $("bulkConfirmBtn").disabled = false;
+      $("bulkConfirmBtn").textContent = "Confirm & Create All";
+    }, 5000);
+
+  } catch(ex) { 
+    alert(ex.message); 
+    $("bulkConfirmBtn").disabled = false;
+    $("bulkConfirmBtn").textContent = "Confirm & Create All";
+  }
+};
+
 loadMembers();
 </script>
 </body></html>
+
 

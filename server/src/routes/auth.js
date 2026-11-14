@@ -18,9 +18,9 @@ r.post("/register", async (req, res) => {
   const exists = db.prepare("SELECT 1 FROM users WHERE name = ? COLLATE NOCASE").get(name);
   if (exists) return res.status(409).json({ error: "That user name is taken" });
 
-  const info = db.prepare("INSERT INTO users (name, pass_hash) VALUES (?, ?)").run(name, await hash(pass));
+  const info = db.prepare("INSERT INTO users (name, full_name, pass_hash) VALUES (?, ?, ?)").run(name, name, await hash(pass));
 
-  const user = { id: info.lastInsertRowid, name, role: "member" };
+  const user = { id: info.lastInsertRowid, name, full_name: name, role: "member", is_temp_pass: 0 };
   res.status(201).json({ token: sign(user), user });
 });
 
@@ -28,12 +28,12 @@ r.post("/login", async (req, res) => {
   const name = String(req.body?.name || "").trim();
   const pass = String(req.body?.pass || "");
 
-  const row = db.prepare("SELECT id, name, role, pass_hash FROM users WHERE name = ? COLLATE NOCASE").get(name);
+  const row = db.prepare("SELECT id, name, full_name, role, pass_hash, is_temp_pass FROM users WHERE name = ? COLLATE NOCASE").get(name);
 
   if (!row || !(await verify(pass, row.pass_hash)))
     return res.status(401).json({ error: "User name or password is not correct" });
 
-  const user = { id: row.id, name: row.name, role: row.role };
+  const user = { id: row.id, name: row.name, full_name: row.full_name, role: row.role, is_temp_pass: row.is_temp_pass };
   res.json({ token: sign(user), user });
 });
 
@@ -50,7 +50,7 @@ r.post("/change-password", requireAuth, async (req, res) => {
   if (!row || !(await verify(current, row.pass_hash)))
     return res.status(401).json({ error: "Current password is not correct" });
 
-  db.prepare("UPDATE users SET pass_hash = ? WHERE id = ?").run(await hash(next), req.user.id);
+  db.prepare("UPDATE users SET pass_hash = ?, is_temp_pass = 0 WHERE id = ?").run(await hash(next), req.user.id);
   res.json({ ok: true });
 });
 
@@ -99,3 +99,5 @@ r.post("/reset", async (req, res) => {
 });
 
 export default r;
+
+
