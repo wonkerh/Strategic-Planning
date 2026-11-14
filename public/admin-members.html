@@ -14,7 +14,8 @@
     <form class="card" id="mform">
       <h3>Add Single Investor</h3>
       <div class="form-grid">
-        <label>Full Name<input id="mname" required placeholder="e.g. John Doe"></label>`n        <label>Email Address<input id="memail" type="email" required placeholder="e.g. john@example.com"></label>
+        <label>Full Name<input id="mname" required placeholder="e.g. John Doe"></label>
+        <label>Email Address<input id="memail" type="email" required placeholder="e.g. john@example.com"></label>
       </div>
       <button class="btn btn-primary btn-sm" type="submit" style="justify-self:start">Create Account</button>
       <p class="note" id="mmsg" hidden style="color:var(--ok); font-weight:bold;"></p>
@@ -40,32 +41,6 @@
       <button class="btn btn-primary" type="submit" style="justify-self:start; background:var(--ok); font-size: 1rem; padding: 0.8rem 1.5rem;">Save Payment & Update Balance</button>
       <p class="note" id="pmsg" hidden style="color:var(--ok); font-weight:bold; font-size: 1.1rem;"></p>
     </form>
-  </div>
-
-  <!-- Bulk Add Form -->
-  <div class="card" style="margin-top: 1rem; border: 2px solid var(--soil);">
-    <h3>Bulk Add Members</h3>
-    <p class="note" style="margin-bottom: 1rem;">Enter one full name per line. The system will automatically assign a unique ID and the temporary password <b>Temp1234</b> to everyone.</p>
-    
-    <div id="bulkInputArea">
-      <textarea id="bulkNames" rows="6" placeholder="John Doe&#10;Jane Smith&#10;Michael Johnson" style="width: 100%; font-family: monospace;"></textarea>
-      <button class="btn btn-primary btn-sm" id="bulkPreviewBtn" type="button" style="margin-top: 1rem; background: var(--soil);">Preview List</button>
-    </div>
-
-    <div id="bulkReviewArea" hidden>
-      <h4 style="margin-bottom: 0.5rem; color: var(--soil);">Confirm the following accounts:</h4>
-      <div class="scroll" style="max-height: 300px; margin-bottom: 1rem;">
-        <table>
-          <thead><tr><th>NAME</th><th>PASSWORD</th><th>STATUS</th></tr></thead>
-          <tbody id="bulkReviewList"></tbody>
-        </table>
-      </div>
-      <div class="cta-row">
-        <button class="btn btn-primary btn-sm" id="bulkConfirmBtn" type="button" style="background: var(--ok);">Confirm & Create All</button>
-        <button class="btn btn-ghost btn-sm" id="bulkCancelBtn" type="button">Cancel</button>
-      </div>
-      <p class="note" id="bulkResult" hidden style="margin-top: 1rem; font-weight: bold;"></p>
-    </div>
   </div>
 
   <!-- Members List -->
@@ -134,6 +109,7 @@ $("mform").onsubmit = async (e) => {
     $("mmsg").innerHTML = `Account created!<br>ID: <b>${res.username}</b><br>Temp Pass: <b>${res.tempPass}</b><br><small>${res.warning || "Email sent successfully."}</small>`;
     $("mmsg").hidden = false;
     $("mname").value = "";
+    $("memail").value = "";
     loadMembers();
   } catch(ex) { alert(ex.message); }
 };
@@ -172,70 +148,11 @@ $("payform").onsubmit = async (e) => {
     $("pamount").value = "1000";
     $("pnote").value = "";
     $("pproof").value = "";
-    loadMembers(); // Instantly refresh the balances table below
+    loadMembers(); 
     
   } catch(ex) { alert(ex.message); }
-};
-
-// --- BULK USER CREATION ---
-let bulkList = [];
-
-$("bulkPreviewBtn").onclick = () => {
-  const raw = $("bulkNames").value;
-  const names = raw.split("\n").map(n => n.trim()).filter(n => n.length > 0);
-  
-  if(names.length === 0) return alert("Please enter at least one name.");
-
-  bulkList = names.map(name => ({ name: name }));
-
-  $("bulkReviewList").innerHTML = bulkList.map(b => `
-    <tr><td>${esc(b.name)}</td><td>Temp1234</td><td><span style="color:var(--ok)">Ready</span></td></tr>
-  `).join("");
-
-  $("bulkInputArea").hidden = true;
-  $("bulkReviewArea").hidden = false;
-};
-
-$("bulkCancelBtn").onclick = () => {
-  $("bulkReviewArea").hidden = true;
-  $("bulkInputArea").hidden = false;
-  $("bulkResult").hidden = true;
-};
-
-$("bulkConfirmBtn").onclick = async () => {
-  $("bulkConfirmBtn").disabled = true;
-  $("bulkConfirmBtn").textContent = "Creating...";
-  
-  try {
-    const res = await API.call("/admin/bulk-users", {
-      method: "POST",
-      body: JSON.stringify({ members: bulkList })
-    });
-
-    let html = `<span style="color:var(--ok)">Success: ${res.success} created.</span><br><br><table style="width:100%; font-size:0.85rem;"><tr><th>NAME</th><th>USERNAME</th><th>PASS</th></tr>`; 
-    res.created.forEach(c => html += `<tr><td>${c.full_name}</td><td><b>${c.username}</b></td><td>${c.tempPass}</td></tr>`); 
-    html += `</table>`;
-    
-    $("bulkResult").innerHTML = html;
-    $("bulkResult").hidden = false;
-    $("bulkNames").value = "";
-    loadMembers();
-
-    setTimeout(() => {
-      $("bulkCancelBtn").click();
-      $("bulkConfirmBtn").disabled = false;
-      $("bulkConfirmBtn").textContent = "Confirm & Create All";
-    }, 5000);
-
-  } catch(ex) { 
-    alert(ex.message); 
-    $("bulkConfirmBtn").disabled = false;
-    $("bulkConfirmBtn").textContent = "Confirm & Create All";
-  }
 };
 
 loadMembers();
 </script>
 </body></html>
-
-

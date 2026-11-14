@@ -2,7 +2,7 @@
 import { db } from "../db.js";
 import { requireAuth, requireAdmin } from "../middleware.js";
 import { hash } from "../auth.js";
-import { sendCredentialsEmail } from "../mailer.js";
+import { sendCredentialsEmail, sendDepositEmail } from "../mailer.js";
 import multer from "multer";
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
@@ -73,7 +73,7 @@ r.get("/balances", (req, res) => {
 });
 
 // --- ADMIN MANUAL DEPOSIT (With Base64 Image) ---
-r.post("/manual-deposit", upload.single("proof"), (req, res) => {
+r.post("/manual-deposit", upload.single("proof"), async (req, res) => {
   const userId = Number(req.body?.userId);
   const amount = Number(req.body?.amount);
   const date = String(req.body?.date || "");
@@ -87,7 +87,7 @@ r.post("/manual-deposit", upload.single("proof"), (req, res) => {
   if (!Number.isFinite(amount) || amount <= 0) return res.status(400).json({ error: "Amount must be > 0" });
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({ error: "Date must be YYYY-MM-DD" });
 
-  const user = db.prepare("SELECT id FROM users WHERE id = ?").get(userId);
+  const user = db.prepare("SELECT id, email, full_name FROM users WHERE id = ?").get(userId);
   if (!user) return res.status(404).json({ error: "User not found" });
 
   const depositDate = new Date(date);
@@ -97,6 +97,11 @@ r.post("/manual-deposit", upload.single("proof"), (req, res) => {
   db.prepare(
     "INSERT INTO transactions (user_id, kind, amount, note, date, end_date, is_locked, proof_file) VALUES (?, 'deposit', ?, ?, ?, ?, 1, ?)"
   ).run(userId, amount, note, date, end_date, proof_base64);
+
+  // Send transparency email
+  if (user.email) {
+    await sendDepositEmail(user.email, user.full_name, amount, date, note);
+  }
 
   res.json({ ok: true });
 });
@@ -155,3 +160,4 @@ r.get("/reports", (req, res) => {
 });
 
 export default r;
+
