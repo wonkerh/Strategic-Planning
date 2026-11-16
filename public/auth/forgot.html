@@ -44,14 +44,11 @@ $("f1").onsubmit = async function(e){
   e.preventDefault(); hideErr("ferr1");
   var m = $("fmsg1"); m.hidden = true;
   try{
-    var r = await API.call("/auth/forgot", { method:"POST", body: JSON.stringify({
+    await API.call("/auth/forgot", { method:"POST", body: JSON.stringify({
       name: $("fname").value.trim()
     })});
-    m.textContent = r.devToken
-      ? "Token generated. Copy it into step 2: " + r.devToken
-      : "If that user exists, the committee can now read the token off the server console.";
+    m.textContent = "If an account exists with an email on file, a reset link has been sent to it.";
     m.hidden = false;
-    if(r.devToken) $("ftoken").value = r.devToken;
   }catch(ex){ showErr("ferr1", ex.message); }
 };
 $("f2").onsubmit = async function(e){
@@ -67,6 +64,7 @@ $("f2").onsubmit = async function(e){
 };
 </script>
 </body></html>
+
 
 
 

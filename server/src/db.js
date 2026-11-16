@@ -14,7 +14,7 @@ db.exec(`
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     name       TEXT NOT NULL UNIQUE COLLATE NOCASE,
     full_name  TEXT NOT NULL,
-        email      TEXT,
+    email      TEXT,
     id_number  TEXT,
     dob        TEXT,
     nationality TEXT,
@@ -84,6 +84,3 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_inv_sector ON investments(sector);
   CREATE INDEX IF NOT EXISTS idx_tx_user    ON transactions(user_id);
 `);
-
-
-

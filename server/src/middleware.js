@@ -2,15 +2,21 @@
 import { db } from "./db.js";
 
 export function requireAuth(req, res, next) {
+  let token = null;
   const header = req.headers.authorization || "";
-  const token = header.startsWith("Bearer ") ? header.slice(7) : null;
+  
+  if (header.startsWith("Bearer ")) {
+    token = header.slice(7);
+  } else if (req.query.token) {
+    // Allow token in query string for file downloads
+    token = req.query.token;
+  }
+
   if (!token) return res.status(401).json({ error: "Not signed in" });
 
   try {
     const payload = verifyToken(token);
-    const user = db
-      .prepare("SELECT id, name, role FROM users WHERE id = ?")
-      .get(payload.sub);
+    const user = db.prepare("SELECT id, name, full_name, role, email, is_temp_pass, profile_complete FROM users WHERE id = ?").get(payload.sub);
     if (!user) return res.status(401).json({ error: "User not found" });
     req.user = user;
     next();

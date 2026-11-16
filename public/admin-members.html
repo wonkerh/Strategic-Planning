@@ -4,7 +4,7 @@
 <title>Manage Members | Committee</title>
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="stylesheet" href="/styles.css"></head><body>
-<header class="site-header"><div class="nav"><a class="brand" href="/index.html"><img src="/icon-192.png" alt="Logo" style="width: 2rem; height: 2rem; object-fit: contain;">Visionary Wealth Circle</a><ul class="menu"></ul><div class="nav-actions"><a class="btn btn-ghost btn-sm" href="/admin.html">ROI</a><a class="btn btn-ghost btn-sm" href="/admin-balances.html">Balances</a><a class="btn btn-ghost btn-sm" href="/auth/logout.html">Sign out</a></div></div></header>
+<header class="site-header"><div class="nav"><a class="brand" href="/index.html"><img src="/icon-192.png" alt="Logo" style="width: 2rem; height: 2rem; object-fit: contain;">Visionary Wealth Circle</a><ul class="menu"></ul><div class="nav-actions"><a class="btn btn-ghost btn-sm" href="/admin.html">ROI</a><a class="btn btn-ghost btn-sm" href="/admin-balances.html">Balances</a><button class="btn btn-ghost btn-sm" onclick="downloadBackup()" style="color:var(--ok); border-color:var(--ok);">Download Backup</button><a class="btn btn-ghost btn-sm" href="/auth/logout.html">Sign out</a></div></div></header>
 <main>
 <div class="page-head"><h1>Manage Members & Payments</h1><p>Add users or record their monthly payments.</p></div>
 <section class="section">
@@ -51,6 +51,13 @@
       <tbody id="memList"></tbody>
     </table></div>
   </div>
+  <!-- System Tools -->
+  <div class="card" style="margin-top: 1rem; border: 2px dashed var(--muted);">
+    <h3>System Tools</h3>
+    <p class="note" style="margin-bottom: 1rem;">Download a complete copy of the database (.db file) as a backup. Store this file safely on your computer in case of emergency.</p>
+    <button class="btn btn-primary btn-sm" id="backupBtn" type="button" style="background: var(--soil);">Download Database Backup</button>
+    <p class="note" id="backupMsg" hidden style="color:var(--ok); font-weight:bold; margin-top: 1rem;"></p>
+  </div>
 </section>
 </main>
 <footer><div class="wrap legal" style="border-top:none">&copy; 2026 Visionary Wealth Circle. All rights reserved.</div></footer>
@@ -61,6 +68,12 @@ else if(API.user.role !== "admin") location.replace("/dashboard.html");
 
 const $=id=>document.getElementById(id);
 function R(n){ return "R " + (Math.round(n*100)/100).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,","); }
+function downloadBackup() {
+  const a = document.createElement("a");
+  a.href = API_BASE + "/admin/backup?token=" + API.token; // Passing token via query for easy download
+  a.target = "_blank";
+  a.click();
+}
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
 
 $("pdate").value = new Date().toISOString().slice(0,10);
@@ -110,7 +123,23 @@ $("mform").onsubmit = async (e) => {
     $("mmsg").hidden = false;
     $("mname").value = "";
     $("memail").value = "";
-    loadMembers();
+    $("backupBtn").onclick = () => {
+  $("backupMsg").hidden = true;
+  try {
+    const a = document.createElement("a");
+    // We pass the token in the URL because standard <a> links don't send headers
+    a.href = API_BASE + "/admin/backup?token=" + API.token; 
+    a.target = "_blank";
+    a.click();
+    
+    $("backupMsg").textContent = "Backup download started. Check your downloads folder.";
+    $("backupMsg").hidden = false;
+  } catch(ex) {
+    alert("Error downloading backup: " + ex.message);
+  }
+};
+
+loadMembers();
   } catch(ex) { alert(ex.message); }
 };
 
@@ -148,11 +177,45 @@ $("payform").onsubmit = async (e) => {
     $("pamount").value = "1000";
     $("pnote").value = "";
     $("pproof").value = "";
-    loadMembers(); 
+    $("backupBtn").onclick = () => {
+  $("backupMsg").hidden = true;
+  try {
+    const a = document.createElement("a");
+    // We pass the token in the URL because standard <a> links don't send headers
+    a.href = API_BASE + "/admin/backup?token=" + API.token; 
+    a.target = "_blank";
+    a.click();
+    
+    $("backupMsg").textContent = "Backup download started. Check your downloads folder.";
+    $("backupMsg").hidden = false;
+  } catch(ex) {
+    alert("Error downloading backup: " + ex.message);
+  }
+};
+
+loadMembers(); 
     
   } catch(ex) { alert(ex.message); }
+};
+
+$("backupBtn").onclick = () => {
+  $("backupMsg").hidden = true;
+  try {
+    const a = document.createElement("a");
+    // We pass the token in the URL because standard <a> links don't send headers
+    a.href = API_BASE + "/admin/backup?token=" + API.token; 
+    a.target = "_blank";
+    a.click();
+    
+    $("backupMsg").textContent = "Backup download started. Check your downloads folder.";
+    $("backupMsg").hidden = false;
+  } catch(ex) {
+    alert("Error downloading backup: " + ex.message);
+  }
 };
 
 loadMembers();
 </script>
 </body></html>
+
+

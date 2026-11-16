@@ -159,5 +159,12 @@ r.get("/reports", (req, res) => {
   });
 });
 
+
+// --- DATABASE BACKUP ---
+r.get("/backup", (req, res) => {
+  const dbPath = process.env.DB_PATH || "./data/stokvel.db";
+  res.download(dbPath, `Visionary_Wealth_Circle_Backup_${new Date().toISOString().slice(0,10)}.db`);
+});
 export default r;
+
 

@@ -180,6 +180,20 @@ function depositEmailHtml(fullName, amount, date, note) {
   return layout({ preheader: `Your contribution of R ${amt} has been recorded.`, eyebrow: 'RECEIPT', content });
 }
 
+
+function resetEmailHtml(fullName, token) {
+  const resetLink = `https://www.strategicplanning.dpdns.org/auth/reset.html?token=${token}`;
+  const content = `
+    <h1 class="hero" style="margin:0 0 6px 0; font-family:${SERIF}; font-size:30px; line-height:38px; font-weight:normal; color:${C.navy};">Password Reset Request</h1>
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:18px 0 22px 0;"><tr><td style="width:48px; border-top:3px solid ${C.gold}; font-size:0; line-height:0;">&nbsp;</td></tr></table>
+    <p style="margin:0 0 26px 0; font-size:16px; line-height:25px; color:${C.muted};">Hi ${esc(fullName)},<br>We received a request to reset your password. Click the button below to choose a new one. This link expires in 30 minutes.</p>
+    
+    ${button(resetLink, 'Reset My Password', C.gold)}
+
+    <p style="margin:36px 0 0 0; padding-top:22px; border-top:1px solid ${C.line}; font-size:12px; line-height:19px; color:${C.muted}; text-align:center;">If you did not request this, you can safely ignore this email.</p>
+  `;
+  return layout({ preheader: 'Reset your Visionary Wealth Circle password.', eyebrow: 'SECURITY', content });
+}
 // --- ACTUAL SENDING FUNCTIONS ---
 
 export async function sendCredentialsEmail(toEmail, fullName, username, tempPassword) {
@@ -213,6 +227,22 @@ export async function sendDepositEmail(toEmail, fullName, amount, date, note) {
       html: depositEmailHtml(fullName, amount, date, note),
     });
 
+    if (error) return { success: false, error: error.message };
+    return { success: true, data };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+export async function sendResetEmail(toEmail, fullName, token) {
+  if (!toEmail) return { success: false, error: "No email on file" };
+  try {
+    const { data, error } = await resend.emails.send({
+      from: 'Visionary Wealth Circle <onboarding@resend.dev>',
+      to: [toEmail],
+      subject: 'Password Reset - Visionary Wealth Circle',
+      html: resetEmailHtml(fullName, token),
+    });
     if (error) return { success: false, error: error.message };
     return { success: true, data };
   } catch (err) {
