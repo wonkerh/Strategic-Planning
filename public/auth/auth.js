@@ -11,3 +11,5 @@ function redirectIfSignedIn(){
 }
 function goToDashboard(){ location.href = "../dashboard.html"; }
 
+
+

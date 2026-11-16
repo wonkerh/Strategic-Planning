@@ -4,7 +4,7 @@
 <title>Manage Members | Committee</title>
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="stylesheet" href="/styles.css"></head><body>
-<header class="site-header"><div class="nav"><a class="brand" href="/index.html"><img src="/icon-192.png" alt="Logo" style="width: 2rem; height: 2rem; object-fit: contain;">Visionary Wealth Circle</a><ul class="menu"></ul><div class="nav-actions"><a class="btn btn-ghost btn-sm" href="/admin.html">ROI</a><a class="btn btn-ghost btn-sm" href="/admin-balances.html">Balances</a><button class="btn btn-ghost btn-sm" onclick="downloadBackup()" style="color:var(--ok); border-color:var(--ok);">Download Backup</button><a class="btn btn-ghost btn-sm" href="/auth/logout.html">Sign out</a></div></div></header>
+<header class="site-header"><div class="nav"><a class="brand" href="/index.html" aria-label="Visionary Wealth Circle home"><img src="/icon-192.png" alt="Visionary Wealth Circle logo" style="width: 2rem; height: 2rem; object-fit: contain;"><div class="brand-text"><span class="brand-name">Visionary Wealth Circle</span><span class="brand-sub">Strategic Planning Group</span></div></a><ul class="menu"></ul><div class="nav-actions"><a class="btn btn-ghost btn-sm" href="/admin.html">ROI</a><a class="btn btn-ghost btn-sm" href="/admin-balances.html">Balances</a><button class="btn btn-ghost btn-sm" onclick="downloadBackup()" style="color:var(--ok); border-color:var(--ok);">Download Backup</button><a class="btn btn-ghost btn-sm" href="/auth/logout.html">Sign out</a></div></div></header>
 <main>
 <div class="page-head"><h1>Manage Members & Payments</h1><p>Add users or record their monthly payments.</p></div>
 <section class="section">
@@ -217,5 +217,8 @@ $("backupBtn").onclick = () => {
 loadMembers();
 </script>
 </body></html>
+
+
+
 
 

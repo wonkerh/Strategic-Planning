@@ -231,3 +231,30 @@ main>*:not(.band){max-width:72rem;margin-inline:auto}
   color: var(--bad); /* Red color */
   margin-top: 2px;
 }
+
+/* Navigation Brand Stacking */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+  color: var(--soil);
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.brand-name {
+  font: 800 1.3rem var(--font-display);
+}
+
+.brand-sub {
+  font: 600 0.65rem var(--font-body);
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+}

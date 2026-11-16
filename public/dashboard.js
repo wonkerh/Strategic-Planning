@@ -85,3 +85,5 @@ var so=$("so");if(so)so.onclick=function(){API.clear();location.href="/index.htm
 load();
 })();
 
+
+

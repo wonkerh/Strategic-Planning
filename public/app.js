@@ -62,7 +62,7 @@ function renderNav(){
     }
     if (actions) {
       actions.innerHTML =
-        '<div class="user-chip"><span class="who">' + escapeHtml(user.full_name || user.name) + ' (' + escapeHtml(user.name) + ')' + '</span><a class="btn btn-ghost btn-sm" href="/auth/logout.html">Sign out</a></div>';
+        '<div class="user-chip"><span class="who">' + escapeHtml(user.full_name || user.name) + '</span><a class="btn btn-ghost btn-sm" href="/auth/logout.html">Sign out</a></div>';
     }
     if (mobile) {
       mobile.innerHTML = memberLinks.map(function(l){
@@ -115,6 +115,9 @@ renderNav();
 window.addEventListener("storage", function(e){
   if (e.key === "spToken") renderNav();
 });
+
+
+
 
 
 
